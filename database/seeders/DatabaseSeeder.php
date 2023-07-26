@@ -1,0 +1,217 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Http\Controllers\SalaryController;
+use App\Models\Animal;
+use App\Models\AnimalProduction;
+use App\Models\Attendance;
+use App\Models\Farm;
+use App\Models\Field;
+use App\Models\Salary;
+use App\Models\Storage;
+use App\Models\Supplier;
+use App\Models\User;
+use App\Models\Worker;
+use App\Utils\Enums;
+use Carbon\Carbon;
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+
+    private int $months = 3;
+    private \Carbon\CarbonPeriod $period;
+    private Carbon $end_date;
+    private Carbon $start_date;
+
+    private SalaryController $salaryController;
+
+    public function __construct()
+    {
+        $this->start_date = Carbon::now()->endOfMonth()->subMonths($this->months);
+        $this->end_date = Carbon::now()->endOfMonth();
+        $this->period = Carbon::parse($this->start_date)->daysUntil($this->end_date);
+        $this->salaryController = new SalaryController();
+    }
+
+    /**
+     * Seed the application's database.
+     */
+    public function run(): void
+    {
+
+        User::factory(1)->create();
+
+        Farm::factory(3)
+            ->has(
+                Worker::factory()->count(15)
+            )
+            ->has(
+                Field::factory()->count(10)
+            )
+            ->create();
+
+        $this->seedWorkers();
+        $this->seedStorage();
+        $this->seedAnimals();
+        $this->seedAnimalProduction();
+        $this->seedSuppliers();
+        $this->seedSalaries();
+    }
+
+    private function seedWorkers(): void
+    {
+        \Log::debug('Seeding Workers');
+        Worker::all()->each(function ($worker) {
+            foreach ($this->period as $date) {
+                $data = [
+                    'date' => $date->format('Y-m-d'),
+                    'worker_id' => $worker->id,
+                ];
+
+                if (fake()->numberBetween(0, 100) > 5) {
+                    $data['time_in'] = fake()->dateTimeBetween('06:00:00', '09:00:00')->format('H:i:s');
+                    $data['time_out'] = fake()->dateTimeBetween('18:00:00', '20:00:00')->format('H:i:s');
+                } else {
+                    $data['time_in'] = null;
+                    $data['time_out'] = null;
+                    $data['leave_reason'] = fake()->sentence();
+                }
+
+                $at = new Attendance();
+                $at->fill($data);
+                $at->save();
+            }
+        });
+    }
+
+    private function seedStorage(): void
+    {
+        \Log::debug('Seeding Storage');
+        Farm::all()->each(function ($farm) {
+            for ($i = 0; $i < 3; $i++) {
+                $data = [
+                    'name' => fake()->country(),
+                    'type' => 'Barn',
+                    'capacity' => fake()->numberBetween(10, 100),
+                    'current_capacity' => 3,
+                    'unit' => 'unit',
+                    'farm_id' => $farm->id,
+                ];
+
+                $storage = new Storage();
+                $storage->fill($data);
+                $storage->save();
+            }
+        }
+        );
+
+    }
+
+    private function seedAnimals(): void
+    {
+        \Log::debug('Seeding Animals');
+        Storage::query()->where('type', '=', 'Barn')->get()->each(function ($storage) {
+            for ($i = 0; $i < 10; $i++) {
+                $data = [
+                    'name' => fake()->firstNameFemale(),
+                    'type' => 'Cow',
+                    'breed' => fake()->randomElement(Enums::$CowBreed),
+                    'color' => fake()->colorName(),
+                    'gender' => 'female',
+                    'storage_id' => $storage->id,
+                    'farm_id' => $storage->farm_id,
+                ];
+                $animal = new Animal();
+                $animal->fill($data);
+                $animal->save();
+            }
+        });
+    }
+
+    private function seedAnimalProduction(): void
+    {
+        \Log::debug('Seeding Animal Production');
+        Animal::query()->where('type', '=', 'Cow')->each(
+            function ($animal) {
+                foreach ($this->period as $date) {
+                    $data = [
+                        'type' => 'Milk',
+                        'date' => $date->format('Y-m-d'),
+                        'quantity' => fake()->numberBetween(1, 10),
+                        'unit' => 'litre',
+                        'animal_id' => $animal->id,
+                        'farm_id' => $animal->farm_id,
+                    ];
+                    $animalProduction = new AnimalProduction();
+                    $animalProduction->fill($data);
+                    $animalProduction->save();
+                }
+            }
+        );
+    }
+
+    private function seedSuppliers(): void
+    {
+        \Log::debug('Seeding Suppliers');
+        foreach (Enums::$SupplierType as $supplierType) {
+            for ($i = 0; $i < 10; $i++) {
+                $data = [
+                    'name' => fake()->company(),
+                    'type' => $supplierType,
+                    'address' => fake()->address(),
+                    'phone' => fake()->phoneNumber(),
+                    'email' => fake()->email(),
+                ];
+                $supplier = new Supplier();
+                $supplier->fill($data);
+                $supplier->save();
+            }
+        }
+    }
+
+    private function seedSalaries(): void
+    {
+        \Log::debug('Seeding Salaries');
+        $now = Carbon::now();
+
+            Worker::all()->each(function ($worker) use ($now) {
+            for($i = 0; $i < $this->months; $i++) {
+                $month = $now->copy()->subMonths($i);
+
+                $res = $this->salaryController->getSalaryReportIndividual($worker->id)
+                    ->whereMonth('attendances.date', '=', $month->month)
+                    ->whereYear('attendances.date', '=', $month->year)
+                    ->get()->toArray();
+
+                $total = array_sum(array_column($res, 'total'));
+                $base = array_sum(array_column($res, 'base'));
+                $overtime = array_sum(array_column($res, 'overtime'));
+                $penalty = array_sum(array_column($res, 'penalty'));
+                $bonus = 0;
+                if ($i % 2 === 0) {
+                    $bonus = 1000;
+                }
+
+                $isPaid = !($month->month === $now->month && $month->year === $now->year);
+
+                $salary = new Salary();
+                $salary->fill([
+                    'worker_id' => $worker->id,
+                    'farm_id' => $worker->farm_id,
+                    'month' => $month->month,
+                    'year' => $month->year,
+                    'base' => $base,
+                    'overtime' => $overtime,
+                    'penalty' => $penalty,
+                    'bonus' => $bonus,
+                    'total' => $total + $bonus,
+                    'paid' => $isPaid
+                ]);
+                $salary->save();
+            }
+        });
+
+    }
+}
