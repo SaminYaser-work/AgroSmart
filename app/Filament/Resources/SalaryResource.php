@@ -96,7 +96,10 @@ class SalaryResource extends Resource
                     })
                     ->requiresConfirmation()
                     ->modalHeading('Pay Salary')
-                    ->modalSubheading('Are you sure you want to pay this salary?')
+                    ->modalSubheading(function (Salary $record) {
+                        $date = date('F', mktime(0, 0, 0, $record->month, 10)) . ', ' . $record->year;
+                        return "Are you sure you want to pay {$record->worker->first_name} {$record->worker->last_name}'s salary for {$date}?";
+                    })
                     ->modalButton('Pay')
                     ->disabled(fn($record) => $record->paid)
             ])
@@ -113,9 +116,12 @@ class SalaryResource extends Resource
                         redirect("/salaries");
                     })
                     ->modalHeading('Pay Salary')
-                    ->modalSubheading('Are you sure you want to pay these salaries?')
+                    ->modalSubheading(function (Collection $records) {
+                        $date = date('F', mktime(0, 0, 0, $records->first()->month, 10)) . ', ' . $records->first()->year;
+                        return "Are you sure you want to pay the salary of {$records->count()} people for {$date}?";
+                    })
                     ->modalButton('Pay')
-                    ->disabled(fn($record) => $record->paid)
+                    ->disabled(fn(Collection $records) => $records->every(fn($record) => $record->paid))
                     ->deselectRecordsAfterCompletion()
             ]);
     }
@@ -127,8 +133,8 @@ class SalaryResource extends Resource
         ];
     }
 
-    protected function getTableContentFooter(): ?View
-    {
-        return view('table.footer', $this->data_list);
-    }
+//    protected function getTableContentFooter(): ?View
+//    {
+//        return view('table.footer', $this->data_list);
+//    }
 }
