@@ -60,6 +60,7 @@ class DatabaseSeeder extends Seeder
         $this->seedAnimalExpense();
         $this->seedSuppliers();
         $this->seedSalaries();
+        $this->seedFields();
     }
 
     private function seedWorkers(): void
@@ -238,5 +239,25 @@ class DatabaseSeeder extends Seeder
             }
         });
 
+    }
+
+    private function seedFields(): void
+    {
+        \Log::debug('Seeding Fields');
+        Farm::all()->each(
+            function ($farm) {
+                for ($i = 0; $i < 10; $i++) {
+                    $data = [
+                        'address' => fake()->address(),
+                        'area' => fake()->numberBetween(10, 100),
+                        'name' => fake()->firstNameFemale(),
+                        'soil_type' => fake()->randomElement(Enums::$SoilType),
+                        'status' => fake()->randomElement(Enums::$FieldStatus),
+                        'farm_id' => $farm->id,
+                    ];
+                    Farm::query()->create($data);
+                }
+            }
+        );
     }
 }
