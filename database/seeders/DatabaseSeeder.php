@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Http\Controllers\SalaryController;
 use App\Models\Animal;
+use App\Models\AnimalExpense;
 use App\Models\AnimalProduction;
 use App\Models\Attendance;
 use App\Models\Farm;
@@ -56,6 +57,7 @@ class DatabaseSeeder extends Seeder
         $this->seedStorage();
         $this->seedAnimals();
         $this->seedAnimalProduction();
+        $this->seedAnimalExpense();
         $this->seedSuppliers();
         $this->seedSalaries();
     }
@@ -147,6 +149,29 @@ class DatabaseSeeder extends Seeder
                     $animalProduction = new AnimalProduction();
                     $animalProduction->fill($data);
                     $animalProduction->save();
+                }
+            }
+        );
+    }
+
+    private function seedAnimalExpense()
+    {
+        \Log::debug('Seeding Animal Expense');
+        Animal::query()->where('type', '=', 'Cow')->each(
+            function ($animal) {
+                foreach ($this->period as $date) {
+                    foreach (Enums::$AnimalExpenseType as $type) {
+                        $data = [
+                            'type' => $type,
+                            'day' => $date->day,
+                            'month' => $date->month,
+                            'year' => $date->year,
+                            'amount' => fake()->numberBetween(20, 250),
+                            'animal_id' => $animal->id,
+                            'farm_id' => $animal->farm_id,
+                        ];
+                        AnimalExpense::query()->create($data);
+                    }
                 }
             }
         );

@@ -48,4 +48,11 @@ class Enums
         'Plowed',
         'Fertilized',
     ];
+
+    public static array $AnimalExpenseType = [
+        'Feed',
+        'Supplements',
+        'Medicine',
+        'Hygiene/Sanitation',
+    ];
 }
