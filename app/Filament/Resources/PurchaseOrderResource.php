@@ -71,10 +71,6 @@ class PurchaseOrderResource extends Resource
                 Tables\Columns\TextColumn::make('unit_price'),
                 Tables\Columns\TextColumn::make('amount'),
                 Tables\Columns\TextColumn::make('unit'),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime(),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime(),
             ])
             ->filters([
                 //

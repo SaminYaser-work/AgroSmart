@@ -48,16 +48,21 @@ class CustomerResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('first_name'),
-                Tables\Columns\TextColumn::make('last_name'),
+                Tables\Columns\TextColumn::make('name')
+                ->getStateUsing(function (Customer $record) {
+                    return $record->first_name . ' ' . $record->last_name;
+                })
+                    ->sortable(['first_name'])
+                    ->searchable(['first_name', 'last_name']),
+                Tables\Columns\TextColumn::make('total_orders')
+                    ->getStateUsing(function (Customer $record) {
+                        return $record->purchaseOrders()->count();
+                    })->sortable(),
                 Tables\Columns\TextColumn::make('email'),
                 Tables\Columns\TextColumn::make('phone'),
-                Tables\Columns\TextColumn::make('address'),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime(),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime(),
+                Tables\Columns\TextColumn::make('address')->words(5),
             ])
+            ->defaultSort('first_name')
             ->filters([
                 //
             ])
@@ -65,7 +70,7 @@ class CustomerResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+//                Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 
