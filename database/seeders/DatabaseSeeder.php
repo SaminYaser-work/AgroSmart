@@ -7,8 +7,10 @@ use App\Models\Animal;
 use App\Models\AnimalExpense;
 use App\Models\AnimalProduction;
 use App\Models\Attendance;
+use App\Models\Customer;
 use App\Models\Farm;
 use App\Models\Field;
+use App\Models\PurchaseOrder;
 use App\Models\Salary;
 use App\Models\Storage;
 use App\Models\Supplier;
@@ -50,6 +52,12 @@ class DatabaseSeeder extends Seeder
             )
             ->has(
                 Field::factory()->count(10)
+            )
+            ->create();
+
+        Customer::factory(30)
+            ->has(
+                PurchaseOrder::factory()->count(10)
             )
             ->create();
 
@@ -155,7 +163,7 @@ class DatabaseSeeder extends Seeder
         );
     }
 
-    private function seedAnimalExpense()
+    private function seedAnimalExpense(): void
     {
         \Log::debug('Seeding Animal Expense');
         Animal::query()->where('type', '=', 'Cow')->each(
@@ -255,7 +263,7 @@ class DatabaseSeeder extends Seeder
                         'status' => fake()->randomElement(Enums::$FieldStatus),
                         'farm_id' => $farm->id,
                     ];
-                    Farm::query()->create($data);
+                    Field::query()->create($data);
                 }
             }
         );

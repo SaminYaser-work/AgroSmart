@@ -55,4 +55,20 @@ class Enums
         'Medicine',
         'Hygiene/Sanitation',
     ];
+
+    public static array $SaleItem = [
+        'Milk',
+        'Silver Carp',
+        'Rui',
+        'Catla',
+        'Rice',
+        'Wheat',
+        'Tomato'
+    ];
+
+    public static array $ItemType = [
+        'Dairy',
+        'Fishery',
+        'Crop',
+    ];
 }
