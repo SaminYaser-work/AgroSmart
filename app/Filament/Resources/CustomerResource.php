@@ -10,8 +10,6 @@ use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class CustomerResource extends Resource
 {
@@ -24,23 +22,27 @@ class CustomerResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('first_name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('last_name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('email')
-                    ->email()
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('phone')
-                    ->tel()
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('address')
-                    ->required()
-                    ->maxLength(255),
+                Forms\Components\Card::make()
+                    ->schema([
+                        Forms\Components\TextInput::make('first_name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('last_name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('email')
+                            ->email()
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('phone')
+                            ->tel()
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('address')
+                            ->required()
+                            ->maxLength(255),
+                    ])
+                    ->columns(2)
             ]);
     }
 
@@ -49,9 +51,9 @@ class CustomerResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                ->getStateUsing(function (Customer $record) {
-                    return $record->first_name . ' ' . $record->last_name;
-                })
+                    ->getStateUsing(function (Customer $record) {
+                        return $record->first_name . ' ' . $record->last_name;
+                    })
                     ->sortable(['first_name'])
                     ->searchable(['first_name', 'last_name']),
                 Tables\Columns\TextColumn::make('total_orders')
