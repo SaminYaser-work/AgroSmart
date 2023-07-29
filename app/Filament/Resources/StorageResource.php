@@ -17,7 +17,7 @@ class StorageResource extends Resource
 {
     protected static ?string $model = Storage::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'fas-warehouse';
     protected static ?string $navigationGroup = 'Inventory';
 
 

@@ -17,7 +17,7 @@ class AnimalResource extends Resource
 {
     protected static ?string $model = Animal::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'fas-cow';
     protected static ?string $navigationGroup = 'Livestock';
 
     public static function form(Form $form): Form
@@ -68,14 +68,14 @@ class AnimalResource extends Resource
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
-    
+
     public static function getRelations(): array
     {
         return [
             //
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -83,5 +83,5 @@ class AnimalResource extends Resource
             'create' => Pages\CreateAnimal::route('/create'),
             'edit' => Pages\EditAnimal::route('/{record}'),
         ];
-    }    
+    }
 }

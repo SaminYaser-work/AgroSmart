@@ -19,6 +19,7 @@ class IndividualWorkerAttendanceTable extends BaseWidget
 
     public Worker|null $record = null;
 
+
     protected function getTableQuery(): Builder
     {
         return Attendance::query()

@@ -21,9 +21,12 @@ class PurchaseOrderFactory extends Factory
     {
         $order_date = Carbon::now()->subDays(rand(1, 30));
         $expected_delivery_date = Carbon::parse($order_date)->addDays(rand(1, 30));
-        $actual_delivery_date = Carbon::parse($expected_delivery_date)->addDays(rand(1, 30));
-        if ($actual_delivery_date->isFuture()) {
-            $actual_delivery_date = null;
+        $actual_delivery_date = null; // Not delivered yet
+
+        if ($this->faker->boolean(30)) {
+            $actual_delivery_date = Carbon::parse($expected_delivery_date)->subDays(); // On time
+        } elseif ($this->faker->boolean(30)) {
+            $actual_delivery_date = Carbon::parse($expected_delivery_date)->addDays(rand(1, 7)); // late
         }
 
         $quantity = $this->faker->numberBetween(1, 100);

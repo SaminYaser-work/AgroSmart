@@ -15,7 +15,7 @@ class AnimalProductionResource extends Resource
 {
     protected static ?string $model = AnimalProduction::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-view-grid-add';
+    protected static ?string $navigationIcon = 'fas-glass-water-droplet';
     protected static ?string $navigationGroup = 'Livestock';
     protected static ?string $navigationLabel = 'Production';
 

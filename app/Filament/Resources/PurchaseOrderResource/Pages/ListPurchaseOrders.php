@@ -10,6 +10,13 @@ class ListPurchaseOrders extends ListRecords
 {
     protected static string $resource = PurchaseOrderResource::class;
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            PurchaseOrderResource\Widgets\TotalPendingOrders::class
+        ];
+    }
+
     protected function getActions(): array
     {
         return [
