@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PurchaseOrderResource\Pages;
-use App\Filament\Resources\PurchaseOrderResource\RelationManagers;
 use App\Models\PurchaseOrder;
 use Carbon\Carbon;
 use Filament\Forms;
@@ -11,6 +10,7 @@ use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
+use Illuminate\Database\Eloquent\Collection;
 
 class PurchaseOrderResource extends Resource
 {
@@ -123,6 +123,19 @@ class PurchaseOrderResource extends Resource
                     ->disabled(fn($record) => $record->actual_delivery_date !== null),
             ])
             ->bulkActions([
+                Tables\Actions\BulkAction::make('delivered_bulk')
+                    ->label('Mark Selected as Delivered')
+                    ->action(function (Collection $records) {
+                        $records->each(function ($record) {
+                            $record->update([
+                                'actual_delivery_date' => Carbon::now()->toDateString()
+                            ]);
+                        });
+                        redirect("/purchase-orders");
+                    })
+                    ->icon('heroicon-o-check-circle')
+                    ->requiresConfirmation()
+                    ->deselectRecordsAfterCompletion()
             ]);
     }
 
@@ -155,12 +168,6 @@ class PurchaseOrderResource extends Resource
         return false;
     }
 
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
 
     public static function getPages(): array
     {

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\CustomerResource\Widgets;
 
 use App\Models\Customer;
 use App\Models\PurchaseOrder;
+use Illuminate\Contracts\View\View;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class CustomerProfileTopProducts extends ApexChartWidget
@@ -14,13 +15,18 @@ class CustomerProfileTopProducts extends ApexChartWidget
      * @var string
      */
     protected static string $chartId = 'customerProfileTopProducts';
+    protected static bool $deferLoading = true;
+    protected function getLoadingIndicator(): null|string|View
+    {
+        return view('loading');
+    }
 
     /**
      * Widget Title
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Top Products';
+    protected static ?string $heading = 'Ordered Products';
 
     protected int | string | array $columnSpan = 1;
 
@@ -42,6 +48,9 @@ class CustomerProfileTopProducts extends ApexChartWidget
      */
     protected function getOptions(): array
     {
+        if (!$this->readyToLoad) {
+            return [];
+        }
 
         $topTypes = PurchaseOrder::select('name', \DB::raw('count(name) as count'))
             ->where('customer_id', $this->record->id)

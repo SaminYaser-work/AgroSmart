@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Filament\Tables;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 class RecentOrderOfCustomerTable extends BaseWidget
 {
@@ -58,6 +59,61 @@ class RecentOrderOfCustomerTable extends BaseWidget
         return false;
     }
 
+    protected function getTableFilters(): array
+    {
+        return [
+            Tables\Filters\SelectFilter::make('type')
+                ->options([
+                    'Dairy' => 'Dairy',
+                    'Crop' => 'Crop',
+                    'Fishery' => 'Fishery',
+                ]),
+            Tables\Filters\Filter::make('actual_delivery_date')
+                ->query(function ($query, array $data) {
+                    if ($data['isActive']) {
+                        $query->whereNotNull('actual_delivery_date');
+                    } else {
+                        $query->whereNull('actual_delivery_date');
+                    }
+                })
+                ->label('Show only delivered')
+        ];
+    }
+
+    protected function getTableActions(): array
+    {
+        return [
+            Tables\Actions\Action::make('delivered')
+                ->label('Mark as Delivered')
+                ->action(function (PurchaseOrder $record) {
+                    $record->actual_delivery_date = now();
+                    $record->save();
+                })
+                ->icon('heroicon-o-check-circle')
+                ->requiresConfirmation()
+                ->disabled(fn($record) => $record->actual_delivery_date !== null),
+        ];
+    }
+
+    protected function getTableBulkActions(): array
+    {
+        return [
+            Tables\Actions\BulkAction::make('delivered_bulk')
+                ->label('Mark Selected as Delivered')
+                ->action(function (Collection $records) {
+                    $records->each(function ($record) {
+                        $record->update([
+                            'actual_delivery_date' => Carbon::now()->toDateString()
+                        ]);
+                    });
+                    redirect("/purchase-orders");
+                })
+                ->icon('heroicon-o-check-circle')
+                ->requiresConfirmation()
+                ->deselectRecordsAfterCompletion()
+        ];
+    }
+
     protected function getTableColumns(): array
     {
         return [
@@ -65,7 +121,8 @@ class RecentOrderOfCustomerTable extends BaseWidget
                 ->label('Product'),
             Tables\Columns\BadgeColumn::make('type'),
             Tables\Columns\TextColumn::make('order_date')
-                ->date(),
+                ->date()
+                ->sortable(),
             Tables\Columns\IconColumn::make('status')
                 ->options([
                     'fas-triangle-exclamation' => fn($state, PurchaseOrder $record): bool => RecentOrderOfCustomerTable::isOrderLate($record),
