@@ -27,6 +27,7 @@ class EditCustomer extends EditRecord
     {
         return [
             CustomerResource\Widgets\CustomerProfileStats::class,
+            CustomerResource\Widgets\CustomerProfileTopProducts::class,
             CustomerResource\Widgets\CustomerProfileTopType::class,
             CustomerResource\Widgets\RecentOrderOfCustomerTable::class
         ];
