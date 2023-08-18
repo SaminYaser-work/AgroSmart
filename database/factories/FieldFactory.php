@@ -22,7 +22,7 @@ class FieldFactory extends Factory
             'area' => $this->faker->randomFloat(2, 0, 100),
             'name' => $this->faker->company,
             'soil_type' => $this->faker->randomElement(Enums::$SoilType),
-            'status' => $this->faker->randomElement(Enums::$FieldStatus),
+            'status' => true,
             'farm_id' => \App\Models\Farm::factory(),
         ];
     }

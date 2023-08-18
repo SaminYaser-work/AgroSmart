@@ -7,6 +7,7 @@ use App\Models\Animal;
 use App\Models\AnimalExpense;
 use App\Models\AnimalProduction;
 use App\Models\Attendance;
+use App\Models\CropProject;
 use App\Models\Customer;
 use App\Models\Farm;
 use App\Models\Field;
@@ -44,17 +45,20 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
 
+        \Log::debug('Seeding User');
         User::factory(1)->create();
 
+        \Log::debug('Seeding Farms, Workers & Field');
         Farm::factory(3)
             ->has(
                 Worker::factory()->count(15)
             )
             ->has(
-                Field::factory()->count(10)
+                Field::factory()->count(5)
             )
             ->create();
 
+        \Log::debug('Seeding Customers & Purchase Order');
         Customer::factory(30)
             ->has(
                 PurchaseOrder::factory()->count(10)
@@ -68,7 +72,8 @@ class DatabaseSeeder extends Seeder
         $this->seedAnimalExpense();
         $this->seedSuppliers();
         $this->seedSalaries();
-        $this->seedFields();
+//        $this->seedFields();
+        $this->seedCropProjects();
     }
 
     private function seedWorkers(): void
@@ -210,8 +215,8 @@ class DatabaseSeeder extends Seeder
         \Log::debug('Seeding Salaries');
         $now = Carbon::now();
 
-            Worker::all()->each(function ($worker) use ($now) {
-            for($i = 0; $i < $this->months; $i++) {
+        Worker::all()->each(function ($worker) use ($now) {
+            for ($i = 0; $i < $this->months; $i++) {
                 $month = $now->copy()->subMonths($i);
 
                 $res = $this->salaryController->getSalaryReportIndividual($worker->id)
@@ -260,12 +265,33 @@ class DatabaseSeeder extends Seeder
                         'area' => fake()->numberBetween(10, 100),
                         'name' => fake()->firstNameFemale(),
                         'soil_type' => fake()->randomElement(Enums::$SoilType),
-                        'status' => fake()->randomElement(Enums::$FieldStatus),
+                        'status' => true,
                         'farm_id' => $farm->id,
                     ];
                     Field::query()->create($data);
                 }
             }
         );
+    }
+
+    private function seedCropProjects(): void
+    {
+        \Log::debug('Seeding Crop Projects');
+        Farm::all()->each(function ($farm) {
+            $randomField = fake()->randomElement(Field::query()->where('farm_id', '=', $farm->id)->get()->toArray());
+            $crop = new CropProject();
+            $data = [
+                'crop_name' => fake()->randomElement(Enums::$CropName),
+                'start_date' => Carbon::now()->subDay(rand(10, 70))->toDateString(),
+                'end_date' => null,
+                'status' => fake()->randomElement(array_slice(Enums::$CropStage, 0, 4)),
+                'yield' => 0.0,
+                'field_id' => $randomField['id'],
+                'farm_id' => $farm->id
+            ];
+            $crop->fill($data);
+            $crop->save();
+            Field::query()->where('id', '=', $randomField['id'])->update(['status' => false]);
+        });
     }
 }

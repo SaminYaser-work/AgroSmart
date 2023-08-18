@@ -41,12 +41,7 @@ class Enums
     ];
 
     public static array $FieldStatus = [
-        'Planted',
-        'Growing',
-        'Harvest Ready',
-        'Harvested',
-        'Plowed',
-        'Fertilized',
+        true, false
     ];
 
     public static array $AnimalExpenseType = [
@@ -54,6 +49,28 @@ class Enums
         'Supplements',
         'Medicine',
         'Hygiene/Sanitation',
+    ];
+
+    public static array $ItemType = [
+        'Dairy',
+        'Fishery',
+        'Crop',
+    ];
+
+    public static array $CropName = [
+        'Rice',
+        'Wheat',
+        'Tomato'
+    ];
+
+    public static array $FishName = [
+        'Silver Carp',
+        'Rui',
+        'Catla',
+    ];
+
+    public static array $AnimalProductName = [
+        "Milk"
     ];
 
     public static array $SaleItem = [
@@ -66,9 +83,11 @@ class Enums
         'Tomato'
     ];
 
-    public static array $ItemType = [
-        'Dairy',
-        'Fishery',
-        'Crop',
+    public static array $CropStage = [
+        'Soil Preparation',
+        'Sowing',
+        'Growing',
+        'Harvesting',
+        'Stored'
     ];
 }

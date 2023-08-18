@@ -17,7 +17,7 @@ return new class extends Migration
             $table->double('area');
             $table->string('name');
             $table->string('soil_type');
-            $table->string('status');
+            $table->boolean('status');
 
             $table->foreignId('farm_id')->constrained('farms');
             $table->timestamps();

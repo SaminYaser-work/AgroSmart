@@ -10,8 +10,6 @@ use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class FieldResource extends Resource
 {
@@ -19,6 +17,8 @@ class FieldResource extends Resource
 
     protected static ?string $navigationIcon = 'fas-grip';
     protected static ?string $navigationGroup = 'Crop';
+
+    private static string $badgeClasses = 'min-h-6 inline-flex items-center justify-center space-x-1 whitespace-nowrap rounded-xl px-2 py-0.5 text-sm font-medium tracking-tight rtl:space-x-reverse text-gray-700 bg-gray-500/10';
 
     public static function form(Form $form): Form
     {
@@ -48,19 +48,30 @@ class FieldResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('farm.name'),
-                Tables\Columns\TextColumn::make('address'),
-                Tables\Columns\TextColumn::make('area'),
-                Tables\Columns\TextColumn::make('name'),
-                Tables\Columns\TextColumn::make('soil_type'),
-                Tables\Columns\TextColumn::make('status'),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime(),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime(),
+                Tables\Columns\TextColumn::make('name')
+                    ->getStateUsing(function (Field $record) {
+                        return $record->name . '&nbsp;<span class="' .
+                            FieldResource::$badgeClasses . '">' . $record->soil_type . '</span><br>' .
+                            '<span class="text-xs text-gray-700">' . $record->farm->name . '</span>';
+                    })
+                    ->html()
+                    ->searchable(['name', 'soil_type', 'farm.name']),
+                Tables\Columns\IconColumn::make('status')
+                    ->label('Availability')
+                    ->trueIcon('fas-check-circle')
+                    ->falseIcon('fas-times-circle'),
+                Tables\Columns\TextColumn::make('area')->sortable(),
+                Tables\Columns\TextColumn::make('address')->words(5)->tooltip(function (Field $record) {
+                    return $record->address;
+                }),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        true => 'Available',
+                        false => 'Unavailable',
+                    ])
+                    ->label('Availability'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
