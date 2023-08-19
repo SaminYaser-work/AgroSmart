@@ -12,7 +12,7 @@ class CustomerStats extends BaseWidget
     {
 
         $totalCustomers = Customer::count();
-        $avgOrdersPerCustomer = Customer::withCount('purchaseOrders')->get()->avg('purchase_orders_count');
+        $avgOrdersPerCustomer = Customer::withCount('salesOrders')->get()->avg('sales_orders_count');
 
         return [
             Card::make('Total Customers', $totalCustomers),

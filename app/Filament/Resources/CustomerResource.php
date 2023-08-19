@@ -58,7 +58,7 @@ class CustomerResource extends Resource
                     ->searchable(['first_name', 'last_name']),
                 Tables\Columns\TextColumn::make('total_orders')
                     ->getStateUsing(function (Customer $record) {
-                        return $record->purchaseOrders()->count();
+                        return $record->salesOrders()->count();
                     })->sortable(),
                 Tables\Columns\TextColumn::make('email'),
                 Tables\Columns\TextColumn::make('phone'),

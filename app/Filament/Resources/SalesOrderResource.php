@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\PurchaseOrderResource\Pages;
-use App\Models\PurchaseOrder;
+use App\Filament\Resources\SalesOrderResource\Pages;
+use App\Models\SalesOrder;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Resources\Form;
@@ -12,9 +12,9 @@ use Filament\Resources\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Collection;
 
-class PurchaseOrderResource extends Resource
+class SalesOrderResource extends Resource
 {
-    protected static ?string $model = PurchaseOrder::class;
+    protected static ?string $model = SalesOrder::class;
 
     protected static ?string $navigationIcon = 'fas-money-bills';
     protected static ?string $navigationGroup = 'Sales';
@@ -59,7 +59,7 @@ class PurchaseOrderResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('customer_name')
-                    ->getStateUsing(function (PurchaseOrder $record) {
+                    ->getStateUsing(function (SalesOrder $record) {
                         return $record->customer->first_name . ' ' . $record->customer->last_name;
                     })
                     ->sortable(['customer.first_name'])
@@ -73,20 +73,20 @@ class PurchaseOrderResource extends Resource
                     ->date(),
                 Tables\Columns\IconColumn::make('status')
                     ->options([
-                        'fas-triangle-exclamation' => fn($state, PurchaseOrder $record): bool => PurchaseOrderResource::isOrderLate($record),
-                        'heroicon-o-clock' => fn($state, PurchaseOrder $record): bool => PurchaseOrderResource::isOrderPending($record),
-                        'heroicon-o-check-circle' => fn($state, $record): bool => PurchaseOrderResource::isOrderDeliveredOnTime($record)
+                        'fas-triangle-exclamation' => fn($state, SalesOrder $record): bool => SalesOrderResource::isOrderLate($record),
+                        'heroicon-o-clock' => fn($state, SalesOrder $record): bool => SalesOrderResource::isOrderPending($record),
+                        'heroicon-o-check-circle' => fn($state, $record): bool => SalesOrderResource::isOrderDeliveredOnTime($record)
                     ])
                     ->colors([
-                        'success' => fn($state, $record): bool => PurchaseOrderResource::isOrderDeliveredOnTime($record),
-                        'danger' => fn($state, PurchaseOrder $record): bool => PurchaseOrderResource::isOrderLate($record),
-                        'warning' => fn($state, PurchaseOrder $record): bool => PurchaseOrderResource::isOrderPending($record) || PurchaseOrderResource::isOrderDeliveredLate($record),
+                        'success' => fn($state, $record): bool => SalesOrderResource::isOrderDeliveredOnTime($record),
+                        'danger' => fn($state, SalesOrder $record): bool => SalesOrderResource::isOrderLate($record),
+                        'warning' => fn($state, SalesOrder $record): bool => SalesOrderResource::isOrderPending($record) || SalesOrderResource::isOrderDeliveredLate($record),
                     ])
                     ->tooltip(function ($record) {
-                        if (PurchaseOrderResource::isOrderLate($record)) return 'Pending & Late';
-                        if (PurchaseOrderResource::isOrderPending($record)) return 'Pending';
-                        if (PurchaseOrderResource::isOrderDeliveredLate($record)) return 'Delivered Late';
-                        if (PurchaseOrderResource::isOrderDeliveredOnTime($record)) return 'Delivered on time';
+                        if (SalesOrderResource::isOrderLate($record)) return 'Pending & Late';
+                        if (SalesOrderResource::isOrderPending($record)) return 'Pending';
+                        if (SalesOrderResource::isOrderDeliveredLate($record)) return 'Delivered Late';
+                        if (SalesOrderResource::isOrderDeliveredOnTime($record)) return 'Delivered on time';
                         return 'Unknown';
                     }),
                 Tables\Columns\TextColumn::make('quantity'),
@@ -114,7 +114,7 @@ class PurchaseOrderResource extends Resource
             ->actions([
                 Tables\Actions\Action::make('delivered')
                     ->label('Mark as Delivered')
-                    ->action(function (PurchaseOrder $record) {
+                    ->action(function (SalesOrder $record) {
                         $record->actual_delivery_date = now();
                         $record->save();
                     })
@@ -131,7 +131,7 @@ class PurchaseOrderResource extends Resource
                                 'actual_delivery_date' => Carbon::now()->toDateString()
                             ]);
                         });
-                        redirect("/purchase-orders");
+                        redirect("/sales-orders");
                     })
                     ->icon('heroicon-o-check-circle')
                     ->requiresConfirmation()
@@ -139,7 +139,7 @@ class PurchaseOrderResource extends Resource
             ]);
     }
 
-    private static function isOrderLate(PurchaseOrder $record): bool
+    private static function isOrderLate(SalesOrder $record): bool
     {
         if ($record->actual_delivery_date === null) {
             return Carbon::parse($record->expected_delivary_date)->isPast();
@@ -147,7 +147,7 @@ class PurchaseOrderResource extends Resource
         return false;
     }
 
-    private static function isOrderPending(PurchaseOrder $record): bool
+    private static function isOrderPending(SalesOrder $record): bool
     {
         if ($record->actual_delivery_date === null) {
             return Carbon::parse($record->expected_delivary_date)->isFuture();
@@ -155,12 +155,12 @@ class PurchaseOrderResource extends Resource
         return false;
     }
 
-    private static function isOrderDeliveredOnTime(PurchaseOrder $record): bool
+    private static function isOrderDeliveredOnTime(SalesOrder $record): bool
     {
         return $record->actual_delivery_date !== null;
     }
 
-    private static function isOrderDeliveredLate(PurchaseOrder $record): bool
+    private static function isOrderDeliveredLate(SalesOrder $record): bool
     {
         if ($record->actual_delivery_date !== null) {
             return Carbon::parse($record->actual_delivery_date)->lessThan(Carbon::parse($record->expected_delivary_date));
@@ -172,9 +172,9 @@ class PurchaseOrderResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPurchaseOrders::route('/'),
-            'create' => Pages\CreatePurchaseOrder::route('/create'),
-            'edit' => Pages\EditPurchaseOrder::route('/{record}/edit'),
+            'index' => Pages\ListSalesOrders::route('/'),
+            'create' => Pages\CreateSalesOrder::route('/create'),
+            'edit' => Pages\EditSalesOrder::route('/{record}/edit'),
         ];
     }
 }

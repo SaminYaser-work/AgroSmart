@@ -10,6 +10,15 @@ class ManageFields extends ManageRecords
 {
     protected static string $resource = FieldResource::class;
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            FieldResource\Widgets\FieldStats::class,
+            FieldResource\Widgets\AreaByFarmChart2::class,
+            FieldResource\Widgets\FieldSoilTypeChart::class
+        ];
+    }
+
     protected function getActions(): array
     {
         return [

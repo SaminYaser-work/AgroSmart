@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\CustomerResource\Widgets;
 
-use App\Filament\Resources\PurchaseOrderResource;
+use App\Filament\Resources\SalesOrderResource;
 use App\Models\Customer;
-use App\Models\PurchaseOrder;
+use App\Models\SalesOrder;
 use Carbon\Carbon;
 use Filament\Tables;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -27,10 +27,10 @@ class RecentOrderOfCustomerTable extends BaseWidget
 
     protected function getTableQuery(): Builder
     {
-        return PurchaseOrder::query()->where('customer_id', $this->record->id)->orderBy('order_date', 'desc');
+        return SalesOrder::query()->where('customer_id', $this->record->id)->orderBy('order_date', 'desc');
     }
 
-    private static function isOrderLate(PurchaseOrder $record): bool
+    private static function isOrderLate(SalesOrder $record): bool
     {
         if ($record->actual_delivery_date === null) {
             return Carbon::parse($record->expected_delivary_date)->isPast();
@@ -38,7 +38,7 @@ class RecentOrderOfCustomerTable extends BaseWidget
         return false;
     }
 
-    private static function isOrderPending(PurchaseOrder $record): bool
+    private static function isOrderPending(SalesOrder $record): bool
     {
         if ($record->actual_delivery_date === null) {
             return Carbon::parse($record->expected_delivary_date)->isFuture();
@@ -46,12 +46,12 @@ class RecentOrderOfCustomerTable extends BaseWidget
         return false;
     }
 
-    private static function isOrderDeliveredOnTime(PurchaseOrder $record): bool
+    private static function isOrderDeliveredOnTime(SalesOrder $record): bool
     {
         return $record->actual_delivery_date !== null;
     }
 
-    private static function isOrderDeliveredLate(PurchaseOrder $record): bool
+    private static function isOrderDeliveredLate(SalesOrder $record): bool
     {
         if ($record->actual_delivery_date !== null) {
             return Carbon::parse($record->actual_delivery_date)->lessThan(Carbon::parse($record->expected_delivary_date));
@@ -85,7 +85,7 @@ class RecentOrderOfCustomerTable extends BaseWidget
         return [
             Tables\Actions\Action::make('delivered')
                 ->label('Mark as Delivered')
-                ->action(function (PurchaseOrder $record) {
+                ->action(function (SalesOrder $record) {
                     $record->actual_delivery_date = now();
                     $record->save();
                 })
@@ -106,7 +106,7 @@ class RecentOrderOfCustomerTable extends BaseWidget
                             'actual_delivery_date' => Carbon::now()->toDateString()
                         ]);
                     });
-                    redirect("/purchase-orders");
+                    redirect("/sales-orders");
                 })
                 ->icon('heroicon-o-check-circle')
                 ->requiresConfirmation()
@@ -125,14 +125,14 @@ class RecentOrderOfCustomerTable extends BaseWidget
                 ->sortable(),
             Tables\Columns\IconColumn::make('status')
                 ->options([
-                    'fas-triangle-exclamation' => fn($state, PurchaseOrder $record): bool => RecentOrderOfCustomerTable::isOrderLate($record),
-                    'heroicon-o-clock' => fn($state, PurchaseOrder $record): bool => RecentOrderOfCustomerTable::isOrderPending($record),
+                    'fas-triangle-exclamation' => fn($state, SalesOrder $record): bool => RecentOrderOfCustomerTable::isOrderLate($record),
+                    'heroicon-o-clock' => fn($state, SalesOrder $record): bool => RecentOrderOfCustomerTable::isOrderPending($record),
                     'heroicon-o-check-circle' => fn($state, $record): bool => RecentOrderOfCustomerTable::isOrderDeliveredOnTime($record)
                 ])
                 ->colors([
                     'success' => fn($state, $record): bool => RecentOrderOfCustomerTable::isOrderDeliveredOnTime($record),
-                    'danger' => fn($state, PurchaseOrder $record): bool => RecentOrderOfCustomerTable::isOrderLate($record),
-                    'warning' => fn($state, PurchaseOrder $record): bool => RecentOrderOfCustomerTable::isOrderPending($record) || RecentOrderOfCustomerTable::isOrderDeliveredLate($record),
+                    'danger' => fn($state, SalesOrder $record): bool => RecentOrderOfCustomerTable::isOrderLate($record),
+                    'warning' => fn($state, SalesOrder $record): bool => RecentOrderOfCustomerTable::isOrderPending($record) || RecentOrderOfCustomerTable::isOrderDeliveredLate($record),
                 ])
                 ->tooltip(function ($record) {
                     if (RecentOrderOfCustomerTable::isOrderLate($record)) return 'Pending & Late';

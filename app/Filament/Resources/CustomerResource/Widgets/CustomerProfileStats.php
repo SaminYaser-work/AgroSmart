@@ -12,8 +12,8 @@ class CustomerProfileStats extends BaseWidget
     protected int | string | array $columnSpan = 2;
     protected function getCards(): array
     {
-        $totalOrders = $this->record->purchaseOrders()->count();
-        $totalSpent = money($this->record->purchaseOrders()->sum('amount'), 'bdt');
+        $totalOrders = $this->record->salesOrders()->count();
+        $totalSpent = money($this->record->salesOrders()->sum('amount'), 'bdt');
 
         return [
             Card::make('Total Orders', $totalOrders),

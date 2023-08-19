@@ -18,8 +18,8 @@ class Customer extends Model
         'address',
     ];
 
-    public function purchaseOrders(): HasMany
+    public function salesOrders(): HasMany
     {
-        return $this->hasMany(PurchaseOrder::class);
+        return $this->hasMany(SalesOrder::class);
     }
 }

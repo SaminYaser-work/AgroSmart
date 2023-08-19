@@ -11,7 +11,7 @@ use App\Models\CropProject;
 use App\Models\Customer;
 use App\Models\Farm;
 use App\Models\Field;
-use App\Models\PurchaseOrder;
+use App\Models\SalesOrder;
 use App\Models\Salary;
 use App\Models\Storage;
 use App\Models\Supplier;
@@ -58,10 +58,10 @@ class DatabaseSeeder extends Seeder
             )
             ->create();
 
-        \Log::debug('Seeding Customers & Purchase Order');
+        \Log::debug('Seeding Customers & Sales Order');
         Customer::factory(30)
             ->has(
-                PurchaseOrder::factory()->count(10)
+                SalesOrder::factory()->count(10)
             )
             ->create();
 

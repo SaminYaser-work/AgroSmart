@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\PurchaseOrderResource\Widgets;
+namespace App\Filament\Resources\SalesOrderResource\Widgets;
 
-use App\Models\PurchaseOrder;
+use App\Models\SalesOrder;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Card;
 
@@ -11,19 +11,19 @@ class TotalPendingOrders extends BaseWidget
     protected function getCards(): array
     {
 
-        $totalDeliveredOnTime = PurchaseOrder::where('actual_delivery_date', '!=', null)
+        $totalDeliveredOnTime = SalesOrder::where('actual_delivery_date', '!=', null)
             ->whereColumn('actual_delivery_date', '<=', 'expected_delivery_date')
             ->count();
 
-        $totalDeliveredLate = PurchaseOrder::where('actual_delivery_date', '!=', null)
+        $totalDeliveredLate = SalesOrder::where('actual_delivery_date', '!=', null)
             ->whereColumn('actual_delivery_date', '>', 'expected_delivery_date')
             ->count();
 
-        $totalPendingOrders = PurchaseOrder::where('actual_delivery_date', null)
+        $totalPendingOrders = SalesOrder::where('actual_delivery_date', null)
             ->where('expected_delivery_date', '>=', now())
             ->count();
 
-        $totalPendingLateOrders = PurchaseOrder::where('actual_delivery_date', null)
+        $totalPendingLateOrders = SalesOrder::where('actual_delivery_date', null)
             ->where('expected_delivery_date', '<', now())
             ->count();
 

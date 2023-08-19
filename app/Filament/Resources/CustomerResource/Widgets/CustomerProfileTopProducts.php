@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\CustomerResource\Widgets;
 
 use App\Models\Customer;
-use App\Models\PurchaseOrder;
+use App\Models\SalesOrder;
 use Illuminate\Contracts\View\View;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
@@ -52,7 +52,7 @@ class CustomerProfileTopProducts extends ApexChartWidget
             return [];
         }
 
-        $topTypes = PurchaseOrder::select('name', \DB::raw('count(name) as count'))
+        $topTypes = SalesOrder::select('name', \DB::raw('count(name) as count'))
             ->where('customer_id', $this->record->id)
             ->groupBy('name')
             ->orderByDesc('count')
