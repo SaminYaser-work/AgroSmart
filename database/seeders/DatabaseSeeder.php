@@ -277,21 +277,46 @@ class DatabaseSeeder extends Seeder
     private function seedCropProjects(): void
     {
         \Log::debug('Seeding Crop Projects');
-        Farm::all()->each(function ($farm) {
-            $randomField = fake()->randomElement(Field::query()->where('farm_id', '=', $farm->id)->get()->toArray());
+
+        $totalFields = Field::count();
+
+        if ($totalFields === 0) {
+            return;
+        }
+
+        $randomFields = $this->getRandomSamples(Field::all()->toArray(), $totalFields - rand(5, $totalFields));
+
+        foreach ($randomFields as $field) {
+            $randomCropName = fake()->randomElement(Enums::$CropName);
+            $cropYieldPerHa = Enums::getExpectedYield($randomCropName);
+            $startDate = Carbon::now()->subDays(rand(10, 70))->toDateString();
+            $cropEndDate = Carbon::parse($startDate)->addDays(Enums::getExpectedEndDateInDays($randomCropName))->toDateString();
+
             $crop = new CropProject();
             $data = [
                 'crop_name' => fake()->randomElement(Enums::$CropName),
-                'start_date' => Carbon::now()->subDay(rand(10, 70))->toDateString(),
+                'start_date' => $startDate,
                 'end_date' => null,
+                'expected_end_date' => $cropEndDate,
                 'status' => fake()->randomElement(array_slice(Enums::$CropStage, 0, 4)),
                 'yield' => 0.0,
-                'field_id' => $randomField['id'],
-                'farm_id' => $farm->id
+                'expected_yield' => $cropYieldPerHa * $field['area'],
+                'field_id' => $field['id'],
+                'farm_id' => $field['farm_id']
             ];
             $crop->fill($data);
             $crop->save();
-            Field::query()->where('id', '=', $randomField['id'])->update(['status' => false]);
-        });
+            Field::query()->where('id', '=', $field['id'])->update(['status' => false]);
+        }
+    }
+
+    private function getRandomSamples(array $array, int $count): array
+    {
+        $keys = array_rand($array, $count);
+        $result = [];
+        foreach ($keys as $key) {
+            $result[] = $array[$key];
+        }
+        return $result;
     }
 }

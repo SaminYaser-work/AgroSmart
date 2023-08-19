@@ -16,8 +16,10 @@ return new class extends Migration
             $table->string('crop_name');
             $table->date('start_date');
             $table->date('end_date')->nullable();
+            $table->date('expected_end_date');
             $table->string('status');
             $table->double('yield');
+            $table->double('expected_yield');
 
             $table->foreignId('field_id')->references('id')->on('fields');
             $table->foreignId('farm_id')->references('id')->on('farms');

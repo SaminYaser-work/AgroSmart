@@ -15,19 +15,21 @@ class CropProject extends Model
         "crop_name",
         "start_date",
         "end_date",
+        "expected_end_date",
         "status",
         "yield",
+        "expected_yield",
         "field_id",
         "farm_id"
     ];
 
-    public function fields(): BelongsTo
+    public function field(): BelongsTo
     {
-        return $this->belongsTo('fields');
+        return $this->belongsTo(Field::class);
     }
 
-    public function farms(): BelongsTo
+    public function farm(): BelongsTo
     {
-        return $this->belongsTo('farms');
+        return $this->belongsTo(Farm::class);
     }
 }

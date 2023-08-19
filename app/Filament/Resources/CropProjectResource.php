@@ -34,14 +34,14 @@ class CropProjectResource extends Resource
                 Forms\Components\DatePicker::make('start_date')
                     ->required(),
                 Forms\Components\DatePicker::make('end_date')
-                    ->requiredIf('status', 4)
+                    ->requiredIf('status', "Stored")
                     ->after('start_date'),
                 Forms\Components\Select::make('status')
-                    ->options(Enums::$CropStage)
+                    ->options(array_combine(Enums::$CropStage, Enums::$CropStage))
                     ->required(),
                 Forms\Components\TextInput::make('yield')
-                    ->requiredIf('status', 4)
-                    ->label('Yield (Kg)'),
+                    ->requiredIf('status', "Stored")
+                    ->label('Yield (tonne)'),
             ]);
     }
 
@@ -49,25 +49,30 @@ class CropProjectResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('field.name'),
-                Tables\Columns\TextColumn::make('farm.name'),
-                Tables\Columns\TextColumn::make('crop_name'),
+                Tables\Columns\TextColumn::make('crop_name')->label('Crop'),
+                Tables\Columns\TextColumn::make('field_name')
+                    ->getStateUsing(function (CropProject $record) {
+                        return $record->field->name . '<br/>' . '<span class="text-xs">' . ucwords($record->farm->name) . '</span>';
+                    })
+                    ->html()
+                    ->label('Field'),
                 Tables\Columns\TextColumn::make('start_date')
                     ->date(),
                 Tables\Columns\TextColumn::make('end_date')
                     ->date(),
+                Tables\Columns\TextColumn::make('expected_end_date')
+                    ->date(),
                 Tables\Columns\TextColumn::make('status'),
-                Tables\Columns\TextColumn::make('yield'),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime(),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime(),
+                Tables\Columns\TextColumn::make('yield')->label('Yield (tonne)'),
+                Tables\Columns\TextColumn::make('expected_yield')->label('Expected Yield (tonne)'),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->disabled(function (CropProject $record) {
+                    return $record->status == "Stored";
+                }),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
