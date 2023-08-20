@@ -11,6 +11,7 @@ use App\Models\CropProject;
 use App\Models\Customer;
 use App\Models\Farm;
 use App\Models\Field;
+use App\Models\PurchaseOrder;
 use App\Models\SalesOrder;
 use App\Models\Salary;
 use App\Models\Storage;
@@ -65,12 +66,15 @@ class DatabaseSeeder extends Seeder
             )
             ->create();
 
+        Supplier::factory(30)->create();
+
         $this->seedWorkers();
         $this->seedStorage();
         $this->seedAnimals();
         $this->seedAnimalProduction();
         $this->seedAnimalExpense();
-        $this->seedSuppliers();
+//        $this->seedSuppliers();
+        $this->seedPurchaseOrders();
         $this->seedSalaries();
 //        $this->seedFields();
         $this->seedCropProjects();
@@ -202,6 +206,7 @@ class DatabaseSeeder extends Seeder
                     'address' => fake()->address(),
                     'phone' => fake()->phoneNumber(),
                     'email' => fake()->email(),
+                    'lead_time' => fake()->numberBetween(1, 10),
                 ];
                 $supplier = new Supplier();
                 $supplier->fill($data);
@@ -284,7 +289,7 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        $randomFields = $this->getRandomSamples(Field::all()->toArray(), $totalFields - rand(5, $totalFields));
+        $randomFields = $this->getRandomSamples(Field::all()->toArray(), $totalFields - 5);
 
         foreach ($randomFields as $field) {
             $randomCropName = fake()->randomElement(Enums::$CropName);
@@ -308,6 +313,42 @@ class DatabaseSeeder extends Seeder
             $crop->save();
             Field::query()->where('id', '=', $field['id'])->update(['status' => false]);
         }
+    }
+
+    private function seedPurchaseOrders()
+    {
+        Supplier::all()->every(function ($supplier) {
+            $order_date = \Illuminate\Support\Carbon::now()->subDays(rand(1, 30));
+            $expected_delivery_date = Carbon::parse($order_date)->addDays(rand(1, 15));
+            $actual_delivery_date = null; // Not delivered yet
+
+            if (fake()->boolean(70)) {
+                $actual_delivery_date = Carbon::parse($expected_delivery_date)->subDays(); // On time
+            } elseif (fake()->boolean()) {
+                $actual_delivery_date = Carbon::parse($expected_delivery_date)->addDays(rand(1, 7)); // late
+            }
+
+            $quantity = fake()->numberBetween(1, 100);
+            $unit_price = fake()->randomFloat(2, 100, 2000);
+            $amount = $quantity * $unit_price;
+
+            [$products, $unit] = Enums::getSupplierProducts($supplier->type);
+
+            $data = [
+                'name' => fake()->randomElement($products),
+                'type' => $supplier->type,
+                'order_date' => $order_date,
+                'expected_delivery_date' => $expected_delivery_date,
+                'actual_delivery_date' => $actual_delivery_date,
+                'quantity' => $quantity,
+                'unit_price' => $unit_price,
+                'amount' => $amount,
+                'unit' => $unit,
+                'farm_id' => fake()->randomElement(Farm::all()->pluck('id')->toArray())
+            ];
+
+            PurchaseOrder::query()->create($data);
+        });
     }
 
     private function getRandomSamples(array $array, int $count): array

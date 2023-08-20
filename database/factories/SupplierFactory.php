@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Utils\Enums;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +18,12 @@ class SupplierFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->company(),
+            'type' => fake()->randomElement(Enums::$SupplierType),
+            'address' => fake()->address(),
+            'phone' => fake()->phoneNumber(),
+            'email' => fake()->email(),
+            'lead_time' => fake()->numberBetween(1, 10),
         ];
     }
 }

@@ -17,18 +17,113 @@ class Enums
     public static array $WorkerDesignations = ['Farm Hand', 'Farm Manager', 'Farm Supervisor', 'Crop Specialist', 'Irrigation Technician', 'Livestock Supervisor', 'Fishery Manager', 'Farm Equipment Technician', 'Farm Equipment Operator', 'Animal Health Technician', 'Harvesting Crew', 'Dairy Farm Worker', 'Veterinarian',];
 
     public static array $SupplierType = [
-        'Feed Supplier',
-        'Medicine Supplier',
-        'Equipment Supplier',
-        'Fertilizer Supplier',
-        'Seed Supplier',
-        'Pesticide Supplier',
-        'Fuel Supplier',
-        'Water Supplier',
-        'Electricity Supplier',
-        'Labor Supplier',
-        'Transportation Supplier',
-        'Other Supplier',
+        'Feed',
+        'Medicine',
+        'Equipment',
+        'Fertilizer',
+        'Seed',
+        'Roe',
+        'Livestock',
+        'Pesticide',
+        'Transportation',
+        'Other',
+    ];
+
+    /**
+     * @throws \Exception
+     */
+    public static function getSupplierProducts(string $type): array {
+        return match ($type) {
+            'Feed' => [self::$feedProducts, 'Kg'],
+            'Medicine' => [self::$medicineProducts, 'gram'],
+            'Equipment' => [self::$equipmentProducts, 'Unit'],
+            'Fertilizer' => [self::$fertilizerProducts, 'Kg'],
+            'Seed' => [self::$seedProducts, 'gram'],
+            'Roe' => [self::$roeProducts, 'gram'],
+            'Livestock' => [self::$livestockProducts, 'Unit'],
+            'Pesticide' => [self::$pesticideProducts, 'Kg'],
+            'Transportation' => [self::$transportationProducts, 'Unit'],
+            default => throw new \Exception("Invalid Supplier Type"),
+        };
+    }
+
+    // Feed
+    public static array $feedProducts = [
+        "Premium Poultry Feed",
+        "Organic Cattle Feed",
+        "Aquaculture Fish Feed",
+    ];
+
+// Medicine
+    public static array $medicineProducts = [
+        "Veterinary Antibiotics",
+        "Livestock Vaccines",
+        "Poultry Health Supplements",
+        "Fish Disease Treatment",
+    ];
+
+// Equipment
+    public static array $equipmentProducts = [
+        "Tractor",
+        "Watering Trough",
+        "Harvester",
+        "Water Pump",
+        "Power Tiller",
+        "Fencing",
+        "Feed Trough",
+        "Aerator",
+        "Water Filtration",
+        "Net",
+        "Basket",
+        "Hoe",
+        "Shovel",
+        "Sickle"
+    ];
+
+// Fertilizer
+    public static array $fertilizerProducts = [
+        "Organic Compost Fertilizer",
+        "Nitrogen-Rich Plant Food",
+        "Phosphorus Enriched Soil Amendment",
+        "Potash-Packed Garden Fertilizer",
+        "Liquid Seaweed Fertilizer",
+    ];
+
+// Seed
+    public static array $seedProducts = [
+        "Binatomato 11 Seeds",
+        "BRII 87 Rice Seeds",
+        "BWMRI 4 Wheat Seeds"
+    ];
+
+// Roe
+    public static array $roeProducts = [
+        "Silver Carp Fish Eggs",
+        "Rui Roe",
+        "Catla Roe",
+    ];
+
+// Livestock
+    public static array $livestockProducts = [
+        "Beef Cattle",
+        "Dairy Calf",
+        "Broiler Chicks",
+    ];
+
+// Pesticide
+    public static array $pesticideProducts = [
+        "Organic Insect Repellent",
+        "Herbicide Spray",
+        "Crop Protection Chemicals",
+        "Rodent Control Bait",
+        "Fungicide Solution",
+    ];
+
+// Transportation
+    public static array $transportationProducts = [
+        "Livestock Trailer",
+        "Delivery Truck",
+        "ATV for Fieldwork",
     ];
 
     public static array $SoilType = [
@@ -61,11 +156,6 @@ class Enums
         'Rice',
         'Wheat',
         'Tomato'
-    ];
-
-    public static array $GrainWeight = [
-        'Rice' => 0.02,
-        'Wheat' => 3.4,
     ];
 
     # http://knowledgebank-brri.org/wp-content/uploads/2014/02/BRRI-dhan87-1.pdf

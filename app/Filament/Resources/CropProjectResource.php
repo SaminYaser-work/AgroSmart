@@ -29,19 +29,21 @@ class CropProjectResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('crop_name')
-                    ->disabled(),
+                Forms\Components\Select::make('crop')
+                    ->options(array_combine(Enums::$CropName, Enums::$CropName))
+                    ->disabledOn('edit'),
                 Forms\Components\DatePicker::make('start_date')
-                    ->required(),
+                    ->required()->default(now()->format('Y-m-d')),
                 Forms\Components\DatePicker::make('end_date')
                     ->requiredIf('status', "Stored")
-                    ->after('start_date'),
+                    ->after('start_date')->hiddenOn('create'),
                 Forms\Components\Select::make('status')
                     ->options(array_combine(Enums::$CropStage, Enums::$CropStage))
                     ->required(),
                 Forms\Components\TextInput::make('yield')
                     ->requiredIf('status', "Stored")
-                    ->label('Yield (tonne)'),
+                    ->label('Yield (tonne)')
+                    ->hiddenOn('create'),
             ]);
     }
 

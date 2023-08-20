@@ -10,6 +10,15 @@ class ListCropProjects extends ListRecords
 {
     protected static string $resource = CropProjectResource::class;
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            CropProjectResource\Widgets\CropStats::class,
+            CropProjectResource\Widgets\CurrentCrops::class,
+            CropProjectResource\Widgets\CropStages::class
+        ];
+    }
+
     protected function getActions(): array
     {
         return [
