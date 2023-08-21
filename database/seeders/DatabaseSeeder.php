@@ -66,7 +66,9 @@ class DatabaseSeeder extends Seeder
             )
             ->create();
 
+        \Log::debug('Seeding Suppliers');
         Supplier::factory(30)->create();
+        $this->seedPurchaseOrders();
 
         $this->seedWorkers();
         $this->seedStorage();
@@ -315,40 +317,57 @@ class DatabaseSeeder extends Seeder
         }
     }
 
-    private function seedPurchaseOrders()
+    private function seedPurchaseOrders(): void
     {
-        Supplier::all()->every(function ($supplier) {
-            $order_date = \Illuminate\Support\Carbon::now()->subDays(rand(1, 30));
-            $expected_delivery_date = Carbon::parse($order_date)->addDays(rand(1, 15));
-            $actual_delivery_date = null; // Not delivered yet
+        \Log::debug('Seeding Purchase Orders');
+        $suppliers = Supplier::all();
+        foreach ($suppliers as $supplier) {
+            foreach (range(0, 10) as $i) {
+                $order_date = \Illuminate\Support\Carbon::now()->subDays(rand(1, 30));
+                $expected_delivery_date = Carbon::parse($order_date)->addDays(rand(1, 15));
+                $actual_delivery_date = null; // Not delivered yet
 
-            if (fake()->boolean(70)) {
-                $actual_delivery_date = Carbon::parse($expected_delivery_date)->subDays(); // On time
-            } elseif (fake()->boolean()) {
-                $actual_delivery_date = Carbon::parse($expected_delivery_date)->addDays(rand(1, 7)); // late
+                if (fake()->boolean(80)) {
+                    $actual_delivery_date = Carbon::parse($expected_delivery_date)->subDays(); // On time
+                } elseif (fake()->boolean()) {
+                    $actual_delivery_date = Carbon::parse($expected_delivery_date)->addDays(rand(1, 7)); // late
+                }
+
+                $quantity = fake()->numberBetween(1, 100);
+                $unit_price = fake()->randomFloat(2, 100, 2000);
+                $amount = $quantity * $unit_price;
+
+                [$products, $unit] = Enums::getSupplierProducts($supplier->type);
+
+                $data = [
+                    'name' => fake()->randomElement($products),
+                    'type' => $supplier->type,
+                    'order_date' => $order_date,
+                    'expected_delivery_date' => $expected_delivery_date,
+                    'actual_delivery_date' => $actual_delivery_date,
+                    'quantity' => $quantity,
+                    'unit_price' => $unit_price,
+                    'amount' => $amount,
+                    'unit' => $unit,
+                    'supplier_id' => $supplier->id,
+                    'farm_id' => fake()->randomElement(Farm::all()->pluck('id')->toArray())
+                ];
+
+                $purchaseOrder = new PurchaseOrder();
+                $purchaseOrder->fill($data);
+                $purchaseOrder->save();
             }
 
-            $quantity = fake()->numberBetween(1, 100);
-            $unit_price = fake()->randomFloat(2, 100, 2000);
-            $amount = $quantity * $unit_price;
+            //  Update lead time
+            $avgLeadTime = PurchaseOrder::query()
+                ->select(\DB::raw('AVG(TIMESTAMPDIFF(DAY, order_date, actual_delivery_date)) as avg_lead_time'))
+                ->whereNotNull('actual_delivery_date')
+                ->where('supplier_id', '=', $supplier->id)
+                ->get()
+                ->toArray();
+            Supplier::query()->where('id', '=', $supplier->id)->update(['lead_time' => $avgLeadTime[0]['avg_lead_time']]);
+        }
 
-            [$products, $unit] = Enums::getSupplierProducts($supplier->type);
-
-            $data = [
-                'name' => fake()->randomElement($products),
-                'type' => $supplier->type,
-                'order_date' => $order_date,
-                'expected_delivery_date' => $expected_delivery_date,
-                'actual_delivery_date' => $actual_delivery_date,
-                'quantity' => $quantity,
-                'unit_price' => $unit_price,
-                'amount' => $amount,
-                'unit' => $unit,
-                'farm_id' => fake()->randomElement(Farm::all()->pluck('id')->toArray())
-            ];
-
-            PurchaseOrder::query()->create($data);
-        });
     }
 
     private function getRandomSamples(array $array, int $count): array

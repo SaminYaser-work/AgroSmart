@@ -26,7 +26,6 @@ class Enums
         'Livestock',
         'Pesticide',
         'Transportation',
-        'Other',
     ];
 
     /**
@@ -43,7 +42,7 @@ class Enums
             'Livestock' => [self::$livestockProducts, 'Unit'],
             'Pesticide' => [self::$pesticideProducts, 'Kg'],
             'Transportation' => [self::$transportationProducts, 'Unit'],
-            default => throw new \Exception("Invalid Supplier Type"),
+            default => throw new \Exception("Invalid Supplier Type: " . $type),
         };
     }
 

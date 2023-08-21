@@ -23,7 +23,7 @@ class SupplierFactory extends Factory
             'address' => fake()->address(),
             'phone' => fake()->phoneNumber(),
             'email' => fake()->email(),
-            'lead_time' => fake()->numberBetween(1, 10),
+            'lead_time' => -1
         ];
     }
 }
