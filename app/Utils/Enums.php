@@ -4,6 +4,9 @@ namespace App\Utils;
 
 class Enums
 {
+
+    public static string $badgeClasses = 'min-h-6 inline-flex items-center justify-center space-x-1 whitespace-nowrap rounded-xl px-2 py-0.5 text-sm font-medium tracking-tight rtl:space-x-reverse text-gray-700 bg-gray-500/10';
+
     public static array $StorageType = ['Barn', 'Warehouse', 'Shed', 'Silo',];
 
     public static array $Units = ['kg', 'litre', 'unit', 'hectare', 'acre',];
@@ -27,6 +30,16 @@ class Enums
         'Pesticide',
         'Transportation',
     ];
+
+    public static function  getStorage(string $productType): string {
+        return match ($productType) {
+            'Crop' => 'Silo',
+            'Feed', 'Livestock' => 'Barn',
+            'Medicine', 'Equipment', 'Transportation', 'Roe' => 'Warehouse',
+            'Fertilizer', 'Seed', 'Pesticide' => 'Shed',
+            default => throw new \Exception("Invalid Product Type: " . $productType),
+        };
+    }
 
     /**
      * @throws \Exception

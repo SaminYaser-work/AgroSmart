@@ -39,4 +39,9 @@ class Farm extends Model
     {
         return $this->hasMany(Field::class);
     }
+
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(Inventory::class);
+    }
 }

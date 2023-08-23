@@ -112,12 +112,12 @@ class DatabaseSeeder extends Seeder
     {
         \Log::debug('Seeding Storage');
         Farm::all()->each(function ($farm) {
-            for ($i = 0; $i < 3; $i++) {
+            for ($i = 0; $i < 10; $i++) {
                 $data = [
-                    'name' => fake()->country(),
-                    'type' => 'Barn',
+                    'name' => fake()->buildingNumber(),
+                    'type' => fake()->randomElement(Enums::$StorageType),
                     'capacity' => fake()->numberBetween(10, 100),
-                    'current_capacity' => 3,
+                    'current_capacity' => 0,
                     'unit' => 'unit',
                     'farm_id' => $farm->id,
                 ];
@@ -327,9 +327,9 @@ class DatabaseSeeder extends Seeder
                 $expected_delivery_date = Carbon::parse($order_date)->addDays(rand(1, 15));
                 $actual_delivery_date = null; // Not delivered yet
 
-                if (fake()->boolean(80)) {
-                    $actual_delivery_date = Carbon::parse($expected_delivery_date)->subDays(); // On time
-                } elseif (fake()->boolean()) {
+                if (fake()->boolean(40)) {
+                    $actual_delivery_date = Carbon::parse($expected_delivery_date)->subDays(rand(0, 1)); // On time
+                } elseif (fake()->boolean(10)) {
                     $actual_delivery_date = Carbon::parse($expected_delivery_date)->addDays(rand(1, 7)); // late
                 }
 
@@ -367,7 +367,38 @@ class DatabaseSeeder extends Seeder
                 ->toArray();
             Supplier::query()->where('id', '=', $supplier->id)->update(['lead_time' => $avgLeadTime[0]['avg_lead_time']]);
         }
+    }
 
+    private function seedInventory(): void {
+        \Log::debug('Seeding Inventory');
+        $orders = PurchaseOrder::query()->whereNotNull('actual_delivery_date')->get();
+        $orders->every(function (PurchaseOrder $order) {
+
+            $isOperational = fake()->boolean(85);
+            $reasonForFailure = null;
+            if (!$isOperational) {
+                $reasonForFailure = fake()->sentence();
+            }
+
+            $storageType = Enums::getStorage($order->type);
+            $storage_id = Storage::query()
+                ->where('type', '=', $storageType)
+                ->where('farm_id', '=', $order->farm_id)
+                ->get()->random(1)->first()->pluck('id');
+
+            $data = [
+                'name' => $order->name,
+                'type' => $order->type,
+                'is_operational' => $isOperational,
+                'reason_for_failure' => $reasonForFailure,
+                'buying_price' => $order->amount,
+                'yearly_depreciation' => $order->amount * rand(1, 10) / 100,
+                'farm_id' => $order->farm_id,
+                'supplier_id' => $order->supplier_id,
+                'purchase_order_id' => $order->id,
+//                'storage_id' => $storage_id,
+            ];
+        });
     }
 
     private function getRandomSamples(array $array, int $count): array
