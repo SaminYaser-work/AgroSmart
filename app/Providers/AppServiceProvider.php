@@ -31,6 +31,14 @@ class AppServiceProvider extends ServiceProvider
                 'head.end',
                 static fn()=>(new Vite)(['resources/css/app.css'])
             );
+            Filament::registerNavigationGroups([
+                'Crop',
+                'Livestock',
+                'Sales',
+                'Supply',
+                'HCM',
+                'Inventory'
+            ]);
         });
     }
 }

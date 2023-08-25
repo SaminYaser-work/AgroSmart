@@ -12,9 +12,10 @@ use App\Models\Customer;
 use App\Models\Farm;
 use App\Models\Field;
 use App\Models\Inventory;
+use App\Models\Pond;
 use App\Models\PurchaseOrder;
-use App\Models\SalesOrder;
 use App\Models\Salary;
+use App\Models\SalesOrder;
 use App\Models\Storage;
 use App\Models\Supplier;
 use App\Models\User;
@@ -82,6 +83,59 @@ class DatabaseSeeder extends Seeder
 //        $this->seedFields();
         $this->seedCropProjects();
         $this->seedInventory();
+        $this->seedPonds();
+    }
+
+    private function seedPurchaseOrders(): void
+    {
+        \Log::debug('Seeding Purchase Orders');
+        $suppliers = Supplier::all();
+        foreach ($suppliers as $supplier) {
+            foreach (range(0, 10) as $i) {
+                $order_date = \Illuminate\Support\Carbon::now()->subDays(rand(1, 30));
+                $expected_delivery_date = Carbon::parse($order_date)->addDays(rand(1, 15));
+                $actual_delivery_date = null; // Not delivered yet
+
+                if (fake()->boolean(40)) {
+                    $actual_delivery_date = Carbon::parse($expected_delivery_date)->subDays(rand(0, 1)); // On time
+                } elseif (fake()->boolean(10)) {
+                    $actual_delivery_date = Carbon::parse($expected_delivery_date)->addDays(rand(1, 7)); // late
+                }
+
+                $quantity = fake()->numberBetween(1, 100);
+                $unit_price = fake()->randomFloat(2, 100, 2000);
+                $amount = $quantity * $unit_price;
+
+                [$products, $unit] = Enums::getSupplierProducts($supplier->type);
+
+                $data = [
+                    'name' => fake()->randomElement($products),
+                    'type' => $supplier->type,
+                    'order_date' => $order_date,
+                    'expected_delivery_date' => $expected_delivery_date,
+                    'actual_delivery_date' => $actual_delivery_date,
+                    'quantity' => $quantity,
+                    'unit_price' => $unit_price,
+                    'amount' => $amount,
+                    'unit' => $unit,
+                    'supplier_id' => $supplier->id,
+                    'farm_id' => fake()->randomElement(Farm::all()->pluck('id')->toArray())
+                ];
+
+                $purchaseOrder = new PurchaseOrder();
+                $purchaseOrder->fill($data);
+                $purchaseOrder->save();
+            }
+
+            //  Update lead time
+            $avgLeadTime = PurchaseOrder::query()
+                ->select(\DB::raw('AVG(TIMESTAMPDIFF(DAY, order_date, actual_delivery_date)) as avg_lead_time'))
+                ->whereNotNull('actual_delivery_date')
+                ->where('supplier_id', '=', $supplier->id)
+                ->get()
+                ->toArray();
+            Supplier::query()->where('id', '=', $supplier->id)->update(['lead_time' => $avgLeadTime[0]['avg_lead_time']]);
+        }
     }
 
     private function seedWorkers(): void
@@ -199,26 +253,6 @@ class DatabaseSeeder extends Seeder
         );
     }
 
-    private function seedSuppliers(): void
-    {
-        \Log::debug('Seeding Suppliers');
-        foreach (Enums::$SupplierType as $supplierType) {
-            for ($i = 0; $i < 10; $i++) {
-                $data = [
-                    'name' => fake()->company(),
-                    'type' => $supplierType,
-                    'address' => fake()->address(),
-                    'phone' => fake()->phoneNumber(),
-                    'email' => fake()->email(),
-                    'lead_time' => fake()->numberBetween(1, 10),
-                ];
-                $supplier = new Supplier();
-                $supplier->fill($data);
-                $supplier->save();
-            }
-        }
-    }
-
     private function seedSalaries(): void
     {
         \Log::debug('Seeding Salaries');
@@ -263,26 +297,6 @@ class DatabaseSeeder extends Seeder
 
     }
 
-    private function seedFields(): void
-    {
-        \Log::debug('Seeding Fields');
-        Farm::all()->each(
-            function ($farm) {
-                for ($i = 0; $i < 10; $i++) {
-                    $data = [
-                        'address' => fake()->address(),
-                        'area' => fake()->numberBetween(10, 100),
-                        'name' => fake()->firstNameFemale(),
-                        'soil_type' => fake()->randomElement(Enums::$SoilType),
-                        'status' => true,
-                        'farm_id' => $farm->id,
-                    ];
-                    Field::query()->create($data);
-                }
-            }
-        );
-    }
-
     private function seedCropProjects(): void
     {
         \Log::debug('Seeding Crop Projects');
@@ -319,59 +333,18 @@ class DatabaseSeeder extends Seeder
         }
     }
 
-    private function seedPurchaseOrders(): void
+    private function getRandomSamples(array $array, int $count): array
     {
-        \Log::debug('Seeding Purchase Orders');
-        $suppliers = Supplier::all();
-        foreach ($suppliers as $supplier) {
-            foreach (range(0, 10) as $i) {
-                $order_date = \Illuminate\Support\Carbon::now()->subDays(rand(1, 30));
-                $expected_delivery_date = Carbon::parse($order_date)->addDays(rand(1, 15));
-                $actual_delivery_date = null; // Not delivered yet
-
-                if (fake()->boolean(40)) {
-                    $actual_delivery_date = Carbon::parse($expected_delivery_date)->subDays(rand(0, 1)); // On time
-                } elseif (fake()->boolean(10)) {
-                    $actual_delivery_date = Carbon::parse($expected_delivery_date)->addDays(rand(1, 7)); // late
-                }
-
-                $quantity = fake()->numberBetween(1, 100);
-                $unit_price = fake()->randomFloat(2, 100, 2000);
-                $amount = $quantity * $unit_price;
-
-                [$products, $unit] = Enums::getSupplierProducts($supplier->type);
-
-                $data = [
-                    'name' => fake()->randomElement($products),
-                    'type' => $supplier->type,
-                    'order_date' => $order_date,
-                    'expected_delivery_date' => $expected_delivery_date,
-                    'actual_delivery_date' => $actual_delivery_date,
-                    'quantity' => $quantity,
-                    'unit_price' => $unit_price,
-                    'amount' => $amount,
-                    'unit' => $unit,
-                    'supplier_id' => $supplier->id,
-                    'farm_id' => fake()->randomElement(Farm::all()->pluck('id')->toArray())
-                ];
-
-                $purchaseOrder = new PurchaseOrder();
-                $purchaseOrder->fill($data);
-                $purchaseOrder->save();
-            }
-
-            //  Update lead time
-            $avgLeadTime = PurchaseOrder::query()
-                ->select(\DB::raw('AVG(TIMESTAMPDIFF(DAY, order_date, actual_delivery_date)) as avg_lead_time'))
-                ->whereNotNull('actual_delivery_date')
-                ->where('supplier_id', '=', $supplier->id)
-                ->get()
-                ->toArray();
-            Supplier::query()->where('id', '=', $supplier->id)->update(['lead_time' => $avgLeadTime[0]['avg_lead_time']]);
+        $keys = array_rand($array, $count);
+        $result = [];
+        foreach ($keys as $key) {
+            $result[] = $array[$key];
         }
+        return $result;
     }
 
-    private function seedInventory(): void {
+    private function seedInventory(): void
+    {
         \Log::debug('Seeding Inventory');
         $orders = PurchaseOrder::query()->whereNotNull('actual_delivery_date')->get();
         $orders->every(function (PurchaseOrder $order) {
@@ -409,13 +382,61 @@ class DatabaseSeeder extends Seeder
         });
     }
 
-    private function getRandomSamples(array $array, int $count): array
+    private function seedPonds(): void
     {
-        $keys = array_rand($array, $count);
-        $result = [];
-        foreach ($keys as $key) {
-            $result[] = $array[$key];
+        \Log::debug('Seeding Ponds');
+        Farm::all()->every(function ($farm) {
+            foreach (range(0, 10) as $_) {
+                $data = [
+                    'name' => fake()->streetName(),
+                    'pond_type' => Enums::$PondType[0],
+                    'water_type' => fake()->randomElement(Enums::$WaterType),
+                    'fish' => fake()->boolean(70) ? fake()->randomElement(Enums::$FishName) : null,
+                    'size' => fake()->randomFloat(2, 50, 100),
+                    'farm_id' => $farm->id,
+                ];
+                Pond::query()->create($data);
+            }
+        });
+    }
+
+    private function seedSuppliers(): void
+    {
+        \Log::debug('Seeding Suppliers');
+        foreach (Enums::$SupplierType as $supplierType) {
+            for ($i = 0; $i < 10; $i++) {
+                $data = [
+                    'name' => fake()->company(),
+                    'type' => $supplierType,
+                    'address' => fake()->address(),
+                    'phone' => fake()->phoneNumber(),
+                    'email' => fake()->email(),
+                    'lead_time' => fake()->numberBetween(1, 10),
+                ];
+                $supplier = new Supplier();
+                $supplier->fill($data);
+                $supplier->save();
+            }
         }
-        return $result;
+    }
+
+    private function seedFields(): void
+    {
+        \Log::debug('Seeding Fields');
+        Farm::all()->each(
+            function ($farm) {
+                for ($i = 0; $i < 10; $i++) {
+                    $data = [
+                        'address' => fake()->address(),
+                        'area' => fake()->numberBetween(10, 100),
+                        'name' => fake()->firstNameFemale(),
+                        'soil_type' => fake()->randomElement(Enums::$SoilType),
+                        'status' => true,
+                        'farm_id' => $farm->id,
+                    ];
+                    Field::query()->create($data);
+                }
+            }
+        );
     }
 }

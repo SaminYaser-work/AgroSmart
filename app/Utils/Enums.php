@@ -227,4 +227,25 @@ class Enums
         'Harvesting',
         'Stored'
     ];
+
+    public static array $PondType = [
+        "Fish Pond",
+        "Irrigation Pond",
+        "Water Storage Pond",
+    ];
+
+    public static array $WaterType = [
+        "Freshwater",
+        "Saltwater",
+        "Brackish Water",
+        "Alkaline Water",
+        "Acidic Water",
+        "Chlorinated Water",
+        "Polluted Water",
+        "Clear Water",
+        "Murky Water",
+        "Aerated Water",
+        "Mineral Water",
+        "Spring Water"
+    ];
 }

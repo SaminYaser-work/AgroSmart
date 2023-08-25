@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\CropProject;
 use App\Models\Field;
 use Filament\Widgets\DoughnutChartWidget;
+use Illuminate\Contracts\View\View;
 
 class CropStages extends DoughnutChartWidget
 {
@@ -14,6 +15,13 @@ class CropStages extends DoughnutChartWidget
     protected static ?string $maxHeight = '300px';
 
     protected static ?string $pollingInterval = null;
+
+    protected static bool $deferLoading = true;
+
+    protected function getLoadingIndicator(): null|string|View
+    {
+        return view('loading');
+    }
 
     protected function getData(): array
     {

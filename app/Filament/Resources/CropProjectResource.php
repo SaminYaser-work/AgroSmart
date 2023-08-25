@@ -23,6 +23,8 @@ class CropProjectResource extends Resource
     protected static ?string $navigationGroup = 'Crop';
     protected static ?string $navigationLabel = 'Crop Productions';
 
+    protected static ?int $navigationSort = 0;
+
     protected static ?string $label = 'Crop Productions';
 
     public static function form(Form $form): Form
