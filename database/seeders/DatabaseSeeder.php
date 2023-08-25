@@ -11,6 +11,7 @@ use App\Models\CropProject;
 use App\Models\Customer;
 use App\Models\Farm;
 use App\Models\Field;
+use App\Models\Inventory;
 use App\Models\PurchaseOrder;
 use App\Models\SalesOrder;
 use App\Models\Salary;
@@ -80,6 +81,7 @@ class DatabaseSeeder extends Seeder
         $this->seedSalaries();
 //        $this->seedFields();
         $this->seedCropProjects();
+        $this->seedInventory();
     }
 
     private function seedWorkers(): void
@@ -380,11 +382,13 @@ class DatabaseSeeder extends Seeder
                 $reasonForFailure = fake()->sentence();
             }
 
-            $storageType = Enums::getStorage($order->type);
-            $storage_id = Storage::query()
+            [$storageType, $type] = Enums::getStorage($order->type);
+
+            $storage_id = fake()->randomElement(Storage::query()
                 ->where('type', '=', $storageType)
                 ->where('farm_id', '=', $order->farm_id)
-                ->get()->random(1)->first()->pluck('id');
+                ->get()->random(1)->first()->pluck('id'));
+
 
             $data = [
                 'name' => $order->name,
@@ -396,8 +400,12 @@ class DatabaseSeeder extends Seeder
                 'farm_id' => $order->farm_id,
                 'supplier_id' => $order->supplier_id,
                 'purchase_order_id' => $order->id,
-//                'storage_id' => $storage_id,
+                'storage_id' => $storage_id,
             ];
+
+            $inventory = new Inventory();
+            $inventory->fill($data);
+            $inventory->save();
         });
     }
 

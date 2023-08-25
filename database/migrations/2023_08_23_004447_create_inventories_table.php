@@ -26,7 +26,7 @@ return new class extends Migration
 
             $table->foreignId('crop_project_id')->nullable()->references('id')->on('crop_projects');
             $table->foreignId('storage_id')->nullable()->references('id')->on('storages');
-            $table->foreignId('pond_id')->nullable()->references('id')->on('ponds');
+//            $table->foreignId('pond_id')->nullable()->references('id')->on('ponds');
 
             $table->timestamps();
         });

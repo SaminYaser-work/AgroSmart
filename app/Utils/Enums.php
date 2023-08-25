@@ -31,12 +31,12 @@ class Enums
         'Transportation',
     ];
 
-    public static function  getStorage(string $productType): string {
+    public static function  getStorage(string $productType): array {
         return match ($productType) {
-            'Crop' => 'Silo',
-            'Feed', 'Livestock' => 'Barn',
-            'Medicine', 'Equipment', 'Transportation', 'Roe' => 'Warehouse',
-            'Fertilizer', 'Seed', 'Pesticide' => 'Shed',
+            'Crop' => ['Silo', 'Crop'],
+            'Feed', 'Livestock' => ['Barn', 'Animal'],
+            'Medicine', 'Equipment', 'Transportation', 'Roe' => ['Warehouse', 'Other'],
+            'Fertilizer', 'Seed', 'Pesticide' => ['Shed', 'Other'],
             default => throw new \Exception("Invalid Product Type: " . $productType),
         };
     }
