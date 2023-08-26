@@ -10,6 +10,15 @@ class ListPonds extends ListRecords
 {
     protected static string $resource = PondResource::class;
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            PondResource\Widgets\PondStats::class,
+            PondResource\Widgets\PondsPerFishTypeChart::class,
+            PondResource\Widgets\WaterTypeChart::class,
+        ];
+    }
+
     protected function getActions(): array
     {
         return [

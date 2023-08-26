@@ -16,7 +16,9 @@ class PondResource extends Resource
 {
     protected static ?string $model = Pond::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'fas-water';
+    protected static ?string $navigationGroup = 'Fishery';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -47,7 +49,7 @@ class PondResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->getStateUsing(function (Pond $record) {
-                        return $record->name . '<span class="' . Enums::$badgeClasses . '">' . $record->water_type . '</span>'
+                        return $record->name . '&nbsp;<span class="' . Enums::$badgeClasses . '">' . $record->water_type . '</span>'
                             . '<br/>' . '<span class="text-xs">' . ucwords($record->farm->name) . '</span>';
                     })
                     ->html()
@@ -58,8 +60,11 @@ class PondResource extends Resource
                 Tables\Columns\TextColumn::make('fish')->label('Current Fish'),
                 Tables\Columns\TextColumn::make('size')->label("Pond Size"),
             ])
+            ->defaultSort('fish', 'desc')
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('water_type')
+                    ->options(array_combine(Enums::$WaterType, Enums::$WaterType))
+                    ->label('Water Type'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

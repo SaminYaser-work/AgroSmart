@@ -22,6 +22,7 @@ use App\Models\User;
 use App\Models\Worker;
 use App\Utils\Enums;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -385,7 +386,13 @@ class DatabaseSeeder extends Seeder
     private function seedPonds(): void
     {
         \Log::debug('Seeding Ponds');
-        Farm::all()->every(function ($farm) {
+
+        $metrics_path = storage_path('pond.json');
+        $metrics = json_decode(file_get_contents($metrics_path), true);
+        $len = count($metrics["ph"]);
+
+
+        Farm::all()->every(function ($farm) use ($metrics, $len) {
             foreach (range(0, 10) as $_) {
                 $data = [
                     'name' => fake()->streetName(),
@@ -395,7 +402,68 @@ class DatabaseSeeder extends Seeder
                     'size' => fake()->randomFloat(2, 50, 100),
                     'farm_id' => $farm->id,
                 ];
-                Pond::query()->create($data);
+
+                $pond = new Pond();
+                $pond->fill($data);
+                $pond->save();
+
+                $r = rand(0, $len);
+                $metrics_data = [
+                    'water_temperature' => $metrics["temperature"][$r],
+                    'ph' => $metrics["ph"][$r],
+                    'turbidity' => $metrics["turbidity"][$r],
+                    'farm_id' => $farm->id,
+                    'pond_id' => $pond->id,
+                ];
+
+                $pond->pondMetrics()->create($metrics_data);
+
+                if ($pond->fish) {
+
+                    $start = $this->start_date->copy();
+                    $end = $this->end_date->copy();
+                    $weeks = [];
+
+                    while($start->lessThan($end)) {
+                        $start->addDays(7);
+                        $weeks[] = $start->copy();
+                    }
+
+                    foreach ($weeks as $week) {
+                        $production = fake()->randomFloat(2, 100, 1000);
+                        $yield = $production / $pond->size;
+                        $survival_rate = fake()->randomFloat(2, 90, 100);
+                        $average_weight = fake()->randomFloat(2, 0.5, 2);
+                        $average_growth = fake()->randomFloat(2, 0.5, 2);
+                        $dissolved_oxygen = fake()->randomFloat(2, 0.5, 2);
+                        $water_level = fake()->randomFloat(2, 0.5, 2);
+                        $water_temperature = fake()->randomFloat(2, 0.5, 2);
+                        $ph = fake()->randomFloat(2, 0.5, 2);
+                        $turbidity = fake()->randomFloat(2, 0.5, 2);
+                        $ammonia = fake()->randomFloat(2, 0.5, 2);
+                        $nitrate = fake()->randomFloat(2, 0.5, 2);
+
+                        $weekly_report_data = [
+                            'date' => $week->endOfWeek()->toDateString(),
+                            'production' => $production,
+                            'yield' => $yield,
+                            'survival_rate' => $survival_rate,
+                            'average_weight' => $average_weight,
+                            'average_growth' => $average_growth,
+                            'dissolved_oxygen' => $dissolved_oxygen,
+                            'water_level' => $water_level,
+                            'water_temperature' => $water_temperature,
+                            'ph' => $ph,
+                            'turbidity' => $turbidity,
+                            'ammonia' => $ammonia,
+                            'nitrate' => $nitrate,
+                            'farm_id' => $farm->id,
+                            'pond_id' => $pond->id,
+                        ];
+
+                        $pond->pondWeeklyReports()->create($weekly_report_data);
+                    }
+                }
             }
         });
     }

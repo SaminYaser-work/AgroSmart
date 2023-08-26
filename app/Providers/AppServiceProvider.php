@@ -34,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
             Filament::registerNavigationGroups([
                 'Crop',
                 'Livestock',
+                'Fishery',
                 'Sales',
                 'Supply',
                 'HCM',

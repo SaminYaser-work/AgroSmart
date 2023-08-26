@@ -11,9 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('fish_production_daily_reports', function (Blueprint $table) {
+        Schema::create('pond_weekly_reports', function (Blueprint $table) {
             $table->id();
             $table->date('date');
+            $table->double('production');
+            $table->double('yield');
+            $table->double('survival_rate');
+            $table->double('average_weight');
+            $table->double('average_growth');
             $table->double('dissolved_oxygen');
             $table->double('water_level');
             $table->double('water_temperature');
@@ -33,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('fish_production_daily_reports');
+        Schema::dropIfExists('pond_weekly_reports');
     }
 };
