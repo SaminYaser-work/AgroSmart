@@ -5,14 +5,16 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CropProjectResource\Pages;
 use App\Filament\Resources\CropProjectResource\RelationManagers;
 use App\Models\CropProject;
+use App\Models\Storage;
 use App\Utils\Enums;
+use Closure;
 use Filament\Forms;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Model;
 
 class CropProjectResource extends Resource
 {
@@ -23,6 +25,11 @@ class CropProjectResource extends Resource
     protected static ?string $navigationGroup = 'Crop';
     protected static ?string $navigationLabel = 'Crop Productions';
 
+//    public static function getRecordTitle(?Model $record): string|Htmlable|null
+//    {
+//        return $record->crop_name . ' Production (' . $record->field->name . ')';
+//    }
+
     protected static ?int $navigationSort = 0;
 
     protected static ?string $label = 'Crop Productions';
@@ -32,8 +39,8 @@ class CropProjectResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('crop')
-                    ->options(array_combine(Enums::$CropName, Enums::$CropName))
-                    ->disabledOn('edit'),
+//                    ->options(array_combine(Enums::$CropName, Enums::$CropName))
+                    ->hiddenOn('edit'),
                 Forms\Components\DatePicker::make('start_date')
                     ->required()->default(now()->format('Y-m-d')),
                 Forms\Components\DatePicker::make('end_date')
@@ -41,11 +48,26 @@ class CropProjectResource extends Resource
                     ->after('start_date')->hiddenOn('create'),
                 Forms\Components\Select::make('status')
                     ->options(array_combine(Enums::$CropStage, Enums::$CropStage))
+                    ->reactive()
                     ->required(),
                 Forms\Components\TextInput::make('yield')
                     ->requiredIf('status', "Stored")
                     ->label('Yield (tonne)')
+                    ->hidden(function (Closure $get) {
+                        return $get('status') != "Stored";
+                    })
                     ->hiddenOn('create'),
+                Forms\Components\Select::make('storage_id')
+                    ->options(function (Closure $get, CropProject $record) {
+                        return Storage::query()
+                            ->where('farm_id', $record->farm_id)
+                            ->pluck('name', 'id');
+                    })
+                    ->requiredIf('status', "Stored")
+                    ->hidden(function (Closure $get) {
+                        return $get('status') != "Stored";
+                    })
+                    ->label('Storage'),
             ]);
     }
 
@@ -61,8 +83,11 @@ class CropProjectResource extends Resource
                     ->html()
                     ->label('Field'),
                 Tables\Columns\TextColumn::make('start_date')
+                    ->alignCenter()
                     ->date(),
                 Tables\Columns\TextColumn::make('end_date')
+                    ->placeholder('--')
+                    ->alignCenter()
                     ->date(),
                 Tables\Columns\TextColumn::make('expected_end_date')
                     ->date(),

@@ -70,15 +70,16 @@ class WorkerResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->getStateUsing(function (Worker $record) {
-                        return $record->first_name . ' ' . $record->last_name . '<br/>' . '<span class="text-xs">' . ucwords($record->designation) . '</span>';
+                        return $record->first_name . ' ' . $record->last_name
+                            . '<br/>' . '<span class="text-xs">' . ucwords($record->designation) . '</span>'
+                        . '<br/>' . '<span class="text-xs">' . $record->farm->name . '</span>';
                     })
                     ->html()
                     ->searchable(['first_name', 'last_name']),
-                Tables\Columns\TextColumn::make('farm.name'),
-                Tables\Columns\TextColumn::make('phone_number'),
-                Tables\Columns\TextColumn::make('salary')->sortable(),
-                Tables\Columns\TextColumn::make('bonus')->sortable(),
-                Tables\Columns\TextColumn::make('over_time_rate')->sortable(),
+                Tables\Columns\TextColumn::make('phone_number')->icon('heroicon-o-phone')->searchable(),
+                Tables\Columns\TextColumn::make('salary')->sortable()->money('bdt', true),
+                Tables\Columns\TextColumn::make('bonus')->sortable()->money('bdt', true),
+                Tables\Columns\TextColumn::make('over_time_rate')->sortable()->money('bdt', true),
             ])
             ->filters([
                 //

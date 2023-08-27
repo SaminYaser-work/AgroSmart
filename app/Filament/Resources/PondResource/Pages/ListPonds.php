@@ -8,6 +8,7 @@ use App\Models\Pond;
 use App\Utils\Enums;
 use Closure;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Actions;
 use Filament\Resources\Pages\ListRecords;
@@ -47,19 +48,34 @@ class ListPonds extends ListRecords
                             Farm::all()->pluck('name', 'id')
                         )
                         ->reactive()
+//                        ->afterStateUpdated(fn(Closure $set) => $set('pond', null))
                         ->required(),
                     Select::make('pond')
                         ->options(function (Closure $get) {
-                            $ponds = Pond::where('farm_id', $get('farm'))->get();
-                            return $ponds->pluck('name', 'id');
+                            return Pond::query()
+                                ->where('farm_id', $get('farm'))
+                                ->whereNull('fish')
+                                ->pluck('name', 'id');
                         })
+                        ->reactive()
                         ->hidden(fn(Closure $get) => $get('farm') === null)
                         ->required(),
-                    Select::make('Fish Type')
+                    Select::make('fish_type')
                         ->options(array_combine(Enums::$FishName, Enums::$FishName))
+                        ->reactive()
                         ->required()
-                        ->hidden(fn(Closure $get) => $get('pond') === null && $get('farm') === null)
+                        ->hidden(fn(Closure $get) => $get('pond') === null)
                         ->placeholder('Select Fish Type'),
+                    TextInput::make('initial_fish_count')
+                        ->numeric()
+                        ->label('Fish Count')
+                        ->hidden(fn(Closure $get) => $get('fish_type') === null)
+                        ->required(),
+                    TextInput::make('biomass')
+                        ->numeric()
+                        ->label('Initial Biomass (Kg)')
+                        ->hidden(fn(Closure $get) => $get('fish_type') === null)
+                        ->required()
                 ]),
             Actions\CreateAction::make()->label('Add New Pond'),
         ];

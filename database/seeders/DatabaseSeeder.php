@@ -77,7 +77,7 @@ class DatabaseSeeder extends Seeder
         $this->seedStorage();
         $this->seedAnimals();
         $this->seedAnimalProduction();
-        $this->seedAnimalExpense();
+//        $this->seedAnimalExpense();
 //        $this->seedSuppliers();
         $this->seedPurchaseOrders();
         $this->seedSalaries();
@@ -391,8 +391,9 @@ class DatabaseSeeder extends Seeder
         $metrics = json_decode(file_get_contents($metrics_path), true);
         $len = count($metrics["ph"]);
 
+        $farms = Farm::all();
 
-        Farm::all()->every(function ($farm) use ($metrics, $len) {
+        foreach($farms as $farm) {
             foreach (range(0, 10) as $_) {
                 $data = [
                     'name' => fake()->streetName(),
@@ -465,7 +466,7 @@ class DatabaseSeeder extends Seeder
                     }
                 }
             }
-        });
+        }
     }
 
     private function seedSuppliers(): void

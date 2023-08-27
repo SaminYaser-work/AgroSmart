@@ -67,10 +67,10 @@ class DailySalary extends BaseWidget
     {
         return [
             Tables\Columns\TextColumn::make('date')->date()->sortable(),
-            Tables\Columns\TextColumn::make('base')->sortable(),
-            Tables\Columns\TextColumn::make('overtime')->sortable(),
-            Tables\Columns\TextColumn::make('penalty')->sortable(),
-            Tables\Columns\TextColumn::make('total')->sortable(),
+            Tables\Columns\TextColumn::make('base')->sortable()->money('bdt', true),
+            Tables\Columns\TextColumn::make('overtime')->sortable()->money('bdt', true),
+            Tables\Columns\TextColumn::make('penalty')->sortable()->money('bdt', true),
+            Tables\Columns\TextColumn::make('total')->sortable()->money('bdt', true),
         ];
     }
 }

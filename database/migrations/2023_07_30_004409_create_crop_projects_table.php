@@ -21,6 +21,7 @@ return new class extends Migration
             $table->double('yield');
             $table->double('expected_yield');
 
+            $table->foreignId('storage_id')->nullable()->references('id')->on('storages');
             $table->foreignId('field_id')->references('id')->on('fields');
             $table->foreignId('farm_id')->references('id')->on('farms');
             $table->timestamps();

@@ -58,7 +58,7 @@ class PondResource extends Resource
                     })
                     ->html()
                     ->label('Pond Name'),
-                Tables\Columns\TextColumn::make('fish')->label('Current Fish'),
+                Tables\Columns\TextColumn::make('fish')->label('Current Fish')->placeholder('--')->alignCenter(),
                 Tables\Columns\TextColumn::make('size')->label("Pond Size")
                     ->getStateUsing(function (Pond $record) {
                         return $record->size . ' m<sup>2</sup>';

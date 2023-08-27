@@ -9,7 +9,7 @@ use Filament\Widgets\BarChartWidget;
 
 class IndividualWorkerHourBarChart extends BarChartWidget
 {
-    protected static ?string $heading = 'Attendance Chart';
+    protected static ?string $heading = 'Attendance of Last 7 Days';
     protected static ?string $pollingInterval = null;
     protected static ?array $options = [
         'plugins' => [

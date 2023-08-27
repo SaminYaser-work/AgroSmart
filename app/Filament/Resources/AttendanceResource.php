@@ -67,7 +67,7 @@ class AttendanceResource extends Resource
                 ->getStateUsing(function (Attendance $record): float {
                     return round($record->getHoursWorked(), 2);
                 }),
-                TextColumn::make('leave_reason')->placeholder('-'),
+                TextColumn::make('leave_reason')->placeholder('-')->words(3),
             ])
             ->filters([
                 Filter::make('date')

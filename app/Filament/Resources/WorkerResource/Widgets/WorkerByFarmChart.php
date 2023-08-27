@@ -10,6 +10,8 @@ class WorkerByFarmChart extends BarChartWidget
 
     protected static ?string $pollingInterval = null;
 
+    protected int | string | array $columnSpan = 2;
+
     protected static ?array $options = [
         'plugins' => [
             'legend' => [
