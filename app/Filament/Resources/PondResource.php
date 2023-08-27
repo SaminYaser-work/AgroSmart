@@ -18,6 +18,10 @@ class PondResource extends Resource
 
     protected static ?string $navigationIcon = 'fas-water';
     protected static ?string $navigationGroup = 'Fishery';
+
+    protected static ?string $navigationLabel = 'Production';
+
+    protected static ?string $label = 'Fish Productions';
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
@@ -54,11 +58,13 @@ class PondResource extends Resource
                     })
                     ->html()
                     ->label('Pond Name'),
-//                Tables\Columns\TextColumn::make('name'),
-//                Tables\Columns\TextColumn::make('pond_type'),
-//                Tables\Columns\TextColumn::make('water_type'),
                 Tables\Columns\TextColumn::make('fish')->label('Current Fish'),
-                Tables\Columns\TextColumn::make('size')->label("Pond Size"),
+                Tables\Columns\TextColumn::make('size')->label("Pond Size")
+                    ->getStateUsing(function (Pond $record) {
+                        return $record->size . ' m<sup>2</sup>';
+                    })
+                    ->html()
+                    ->label('Size'),
             ])
             ->defaultSort('fish', 'desc')
             ->filters([

@@ -113,10 +113,6 @@ class PurchaseOrderResource extends Resource
                         $record->actual_delivery_date = now();
                         $record->save();
 
-//                        Storage::query()
-//                            ->where('id', $data['storage'])
-//                            ->increment('quantity', $record->quantity);
-
                         Notification::make()
                             ->title('Inventory Updated')
                             ->success()
