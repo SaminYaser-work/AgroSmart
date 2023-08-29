@@ -5,13 +5,13 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\StorageResource\Pages;
 use App\Filament\Resources\StorageResource\RelationManagers;
 use App\Models\Storage;
+use App\Utils\Enums;
 use Filament\Forms;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use RyanChandler\FilamentProgressColumn\ProgressColumn;
 
 class StorageResource extends Resource
 {
@@ -48,23 +48,30 @@ class StorageResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('farm.name'),
-                Tables\Columns\TextColumn::make('name'),
-                Tables\Columns\TextColumn::make('type'),
-                Tables\Columns\TextColumn::make('capacity'),
-                Tables\Columns\TextColumn::make('current_capacity'),
-                Tables\Columns\TextColumn::make('unit'),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime(),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime(),
+                Tables\Columns\TextColumn::make('name')
+                    ->getStateUsing(function (Storage $record) {
+                        return $record->name . '&nbsp;<span class="' . Enums::$badgeClasses . '">' . $record->type . '</span>'
+                            . '<br/>' . '<span class="text-xs">' . $record->farm->name . '</span>';
+                    })->html(),
+                Tables\Columns\TextColumn::make('capacity')
+                    ->getStateUsing(function (Storage $record) {
+                        return $record->capacity . ' ' . $record->unit;
+                    }),
+                Tables\Columns\TextColumn::make('current_capacity')
+                    ->getStateUsing(function (Storage $record) {
+                        return $record->current_capacity . ' ' . $record->unit;
+                    }),
+                ProgressColumn::make('free_capacity')
+                    ->label('Free Space')
+                    ->progress(fn(Storage $record) => round(100 - ($record->current_capacity / $record->capacity * 100), 2))
+                    ->color(fn(Storage $record) => 100 - ($record->current_capacity / $record->capacity * 100) > 50 ? 'success' : 'danger')
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()->label('Update'),
+//                Tables\Actions\DeleteAction::make()->label('Remove'),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

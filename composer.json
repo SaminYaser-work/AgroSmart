@@ -15,7 +15,8 @@
         "laravel/tinker": "^2.8",
         "leandrocfe/filament-apex-charts": "^2.0",
         "opcodesio/log-viewer": "^2.5",
-        "owenvoke/blade-fontawesome": "^2.3"
+        "owenvoke/blade-fontawesome": "^2.3",
+        "ryangjchandler/filament-progress-column": "^0.3.2"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.8",

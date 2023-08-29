@@ -170,11 +170,13 @@ class DatabaseSeeder extends Seeder
         \Log::debug('Seeding Storage');
         Farm::all()->each(function ($farm) {
             for ($i = 0; $i < 10; $i++) {
+                $max_capacity = fake()->numberBetween(100, 1000);
+                $current_capacity = fake()->numberBetween(0, $max_capacity);
                 $data = [
-                    'name' => fake()->buildingNumber(),
+                    'name' => 'ST-' . $farm->id . '-' . fake()->buildingNumber(),
                     'type' => fake()->randomElement(Enums::$StorageType),
-                    'capacity' => fake()->numberBetween(10, 100),
-                    'current_capacity' => 0,
+                    'capacity' => $max_capacity,
+                    'current_capacity' => $current_capacity,
                     'unit' => 'unit',
                     'farm_id' => $farm->id,
                 ];

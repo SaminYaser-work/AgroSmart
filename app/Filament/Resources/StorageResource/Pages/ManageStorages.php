@@ -10,10 +10,18 @@ class ManageStorages extends ManageRecords
 {
     protected static string $resource = StorageResource::class;
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            StorageResource\Widgets\StorageTypeChart::class,
+            StorageResource\Widgets\FreeSpaceChart::class,
+        ];
+    }
+
     protected function getActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()->label('Add New Storage'),
         ];
     }
 }
