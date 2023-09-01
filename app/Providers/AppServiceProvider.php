@@ -25,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
 //            'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
 //        ], true);
 
+        if($this->app->environment('production')) {
+            \URL::forceScheme('https');
+        }
+
         Filament::serving(function () {
             Filament::registerViteTheme('resources/css/filament.css');
             Filament::registerRenderHook(
