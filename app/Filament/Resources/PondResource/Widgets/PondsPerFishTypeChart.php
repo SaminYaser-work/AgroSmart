@@ -9,7 +9,7 @@ use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 class PondsPerFishTypeChart extends ApexChartWidget
 {
 
-    protected int | string | array $columnSpan = 1;
+    protected int | string | array $columnSpan = 2;
     protected static string $chartId = 'pondsPerFishType';
     protected static ?string $heading = 'Ponds Per Fish Type';
     protected static ?int $contentHeight = 300;

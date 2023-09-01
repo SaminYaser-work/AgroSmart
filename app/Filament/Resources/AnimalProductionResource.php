@@ -20,6 +20,8 @@ class AnimalProductionResource extends Resource
     protected static ?string $navigationGroup = 'Livestock';
     protected static ?string $navigationLabel = 'Production';
 
+    protected static ?string $modelLabel = 'Dairy Production';
+
     public static function form(Form $form): Form
     {
         return $form

@@ -118,11 +118,12 @@ class DeliveredOrderChart extends ApexChartWidget
                     'shade' => 'dark',
                     'type' => 'horizontal',
                     'shadeIntensity' => 0.5,
-                    'gradientToColors' => ['#1ab7ea'],
+                    'gradientToColors' => ['#ABE5A1', '#00A250'],
                     'inverseColors' => true,
                     'opacityFrom' => 1,
                     'opacityTo' => 1,
-                    'stops' => [0, 100]
+                    'stops' => [0, 50, 100],
+                    'colorStops' => []
                 ]
             ],
             'stroke' => [

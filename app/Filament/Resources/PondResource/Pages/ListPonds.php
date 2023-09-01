@@ -17,6 +17,11 @@ class ListPonds extends ListRecords
 {
     protected static string $resource = PondResource::class;
 
+    protected function getHeaderWidgetsColumns(): int|string|array
+    {
+        return 4;
+    }
+
     protected function getHeaderWidgets(): array
     {
         return [

@@ -10,7 +10,7 @@ use Filament\Widgets\StatsOverviewWidget\Card;
 class PondStats extends BaseWidget
 {
 
-    protected int | string | array $columnSpan = 3;
+    protected int | string | array $columnSpan = 4;
 
     protected function getCards(): array
     {

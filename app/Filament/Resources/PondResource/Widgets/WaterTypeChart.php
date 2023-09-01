@@ -9,7 +9,7 @@ use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 class WaterTypeChart extends ApexChartWidget
 {
 
-    protected int | string | array $columnSpan = 1;
+    protected int | string | array $columnSpan = 2;
     protected static string $chartId = 'waterType';
     protected static ?string $heading = 'Water Types';
     protected static ?int $contentHeight = 300;

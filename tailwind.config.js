@@ -18,6 +18,7 @@ export default {
                 secondary: colors.gray,
                 success: colors.green,
                 warning: colors.yellow,
+                custom1: colors.amber,
             },
         },
     },

@@ -16,7 +16,7 @@ class CustomerStats extends BaseWidget
 
         return [
             Card::make('Total Customers', $totalCustomers),
-            Card::make('Avg Orders Per Customer', $avgOrdersPerCustomer),
+            Card::make('Avg Orders Per Customer', round($avgOrdersPerCustomer)),
         ];
     }
 }

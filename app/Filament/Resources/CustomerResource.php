@@ -60,9 +60,9 @@ class CustomerResource extends Resource
                     ->getStateUsing(function (Customer $record) {
                         return $record->salesOrders()->count();
                     })->sortable(),
-                Tables\Columns\TextColumn::make('email'),
-                Tables\Columns\TextColumn::make('phone'),
-                Tables\Columns\TextColumn::make('address')->words(5),
+                Tables\Columns\TextColumn::make('email')->icon('heroicon-o-mail'),
+                Tables\Columns\TextColumn::make('phone')->icon('heroicon-o-phone'),
+                Tables\Columns\TextColumn::make('address')->words(5)->icon('heroicon-o-location-marker'),
             ])
             ->defaultSort('first_name')
             ->filters([

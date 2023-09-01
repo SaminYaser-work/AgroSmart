@@ -47,26 +47,26 @@ class DashboardStats extends BaseWidget
 
             Card::make('Fields', $totalFields)
                 ->chart(self::getRandomNumberArray())
-                ->color('primary')
+                ->color('danger')
                 ->description($totalArea . ' acres of land')
                 ->descriptionIcon('fas-sun-plant-wilt'),
 
             Card::make('Ponds', $totalPonds)
                 ->chart(self::getRandomNumberArray())
-                ->color('primary')
+                ->color('warning')
                 ->description($totalPondArea . ' Sq. metre of water body')
                 ->descriptionIcon('fas-water'),
 
             Card::make('Livestock', $totalLivestock)
                 ->chart(self::getRandomNumberArray())
                 ->description($totalBarns . ' barns')
-                ->color('primary')
+                ->color('warning')
                 ->descriptionIcon('fas-cow'),
 
             Card::make('Workers', $totalWorkers)
                 ->chart(self::getRandomNumberArray())
                 ->description('Over ' . $totalDepartments . ' departments')
-                ->color('primary')
+                ->color('danger')
                 ->descriptionIcon('fas-person-digging'),
 
             Card::make('Customers', $totalCustomers)

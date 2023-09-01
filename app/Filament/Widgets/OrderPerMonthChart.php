@@ -77,25 +77,26 @@ class OrderPerMonthChart extends ApexChartWidget
                     ],
                 ],
             ],
-//            'colors' => ['#6366f1'],
             'plotOptions' => [
                 'bar' => [
                     'borderRadius' => 3,
                     'horizontal' => false,
-                    'distributed' => false,
+                    'distributed' => true,
                 ],
             ],
+//            'colors' => ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#00BCD4', '#009688', '#4CAF50', '#FF9800', '#FF5722'],
             'fill' => [
-                'type' => 'gradient',
-                'gradient' => [
-                    'shade' => 'dark',
-                    'gradientToColors' => ['dodgerblue', 'blue'],
-                    'shadeIntensity' => 1,
-                    'type' => 'vertical',
-                    'opacityFrom' => 0.5,
-                    'opacityTo' => 1,
-                    'stops' => [0, 90, 100]
-                ],
+                'colors' => ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#00BCD4', '#009688', '#4CAF50', '#FF9800', '#FF5722'],
+//                'type' => 'gradient',
+//                'gradient' => [
+//                    'shade' => 'dark',
+//                    'gradientToColors' => ['dodgerblue', 'blue'],
+//                    'shadeIntensity' => 1,
+//                    'type' => 'vertical',
+//                    'opacityFrom' => 0.5,
+//                    'opacityTo' => 1,
+//                    'stops' => [0, 90, 100]
+//                ],
             ],
             'legend' => [
                 'show' => false,
