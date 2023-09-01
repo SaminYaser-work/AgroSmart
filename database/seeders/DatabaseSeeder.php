@@ -78,13 +78,53 @@ class DatabaseSeeder extends Seeder
         $this->seedAnimals();
         $this->seedAnimalProduction();
 //        $this->seedAnimalExpense();
-//        $this->seedSuppliers();
+        $this->seedSuppliers();
+        $this->seedExtraSalesOrder();
         $this->seedPurchaseOrders();
         $this->seedSalaries();
-//        $this->seedFields();
+        $this->seedFields();
         $this->seedCropProjects();
         $this->seedInventory();
         $this->seedPonds();
+    }
+
+    private function seedExtraSalesOrder(): void
+    {
+
+        \Log::debug('Seeding Extra Sales Order');
+        $days = Carbon::now()->startOfYear()->daysUntil(Carbon::now()->endOfMonth()->subMonths(1));
+        $customer_ids = Customer::all()->pluck('id')->toArray();
+        $farm_ids = Farm::all()->pluck('id')->toArray();
+
+        foreach($days as $day) {
+            foreach (range(0, rand(0, 2)) as $_) {
+                $order_date = $day;
+                $expected_delivery_date = $day->copy()->addDays(3);
+                $actual_delivery_date = $expected_delivery_date->copy();
+
+                $quantity = fake()->numberBetween(1, 100);
+                $unit_price = fake()->randomFloat(2, 100, 2000);
+                $amount = $quantity * $unit_price;
+
+                $type = fake()->randomElement(Enums::$ItemType);
+                $unit = $type === 'Dairy' ? 'litre' : 'kg';
+                $data = [
+                    'name' => fake()->randomElement(Enums::$SaleItem),
+                    'type' => $type,
+                    'order_date' => $order_date,
+                    'expected_delivery_date' => $expected_delivery_date->toDateString(),
+                    'actual_delivery_date' => $actual_delivery_date->toDateString(),
+                    'quantity' => $quantity,
+                    'unit_price' => $unit_price,
+                    'amount' => $amount,
+                    'unit' => $unit,
+                    'customer_id' => fake()->randomElement($customer_ids),
+                    'farm_id' => fake()->randomElement($farm_ids)
+                ];
+                SalesOrder::create($data);
+            }
+        }
+
     }
 
     private function seedPurchaseOrders(): void
@@ -360,28 +400,31 @@ class DatabaseSeeder extends Seeder
 
             [$storageType, $type] = Enums::getStorage($order->type);
 
-            $storage_id = fake()->randomElement(Storage::query()
-                ->where('type', '=', $storageType)
-                ->where('farm_id', '=', $order->farm_id)
-                ->get()->random(1)->first()->pluck('id'));
+            $st = Storage::query()
+                    ->where('type', '=', $storageType)
+                    ->where('farm_id', '=', $order->farm_id)
+                    ->get()->random(1)->first()->pluck('id');
 
+            if (!empty($st)) {
+                $storage_id = fake()->randomElement($st);
 
-            $data = [
-                'name' => $order->name,
-                'type' => $order->type,
-                'is_operational' => $isOperational,
-                'reason_for_failure' => $reasonForFailure,
-                'buying_price' => $order->amount,
-                'yearly_depreciation' => $order->amount * rand(1, 10) / 100,
-                'farm_id' => $order->farm_id,
-                'supplier_id' => $order->supplier_id,
-                'purchase_order_id' => $order->id,
-                'storage_id' => $storage_id,
-            ];
+                $data = [
+                    'name' => $order->name,
+                    'type' => $order->type,
+                    'is_operational' => $isOperational,
+                    'reason_for_failure' => $reasonForFailure,
+                    'buying_price' => $order->amount,
+                    'yearly_depreciation' => $order->amount * rand(1, 10) / 100,
+                    'farm_id' => $order->farm_id,
+                    'supplier_id' => $order->supplier_id,
+                    'purchase_order_id' => $order->id,
+                    'storage_id' => $storage_id,
+                ];
 
-            $inventory = new Inventory();
-            $inventory->fill($data);
-            $inventory->save();
+                $inventory = new Inventory();
+                $inventory->fill($data);
+                $inventory->save();
+            }
         });
     }
 

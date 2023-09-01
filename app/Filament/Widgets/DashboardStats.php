@@ -3,11 +3,13 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Animal;
+use App\Models\Customer;
 use App\Models\Farm;
 use App\Models\Field;
 use App\Models\Pond;
 use App\Models\Storage;
 use App\Models\Worker;
+use App\Utils\Enums;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Card;
 use Illuminate\Support\HtmlString;
@@ -32,6 +34,9 @@ class DashboardStats extends BaseWidget
         $totalWorkers = Worker::count();
         $totalDepartments = Worker::query()->distinct('designation')->count();
 
+        $totalCustomers = Customer::count();
+        $totalProducts = count(Enums::$SaleItem);
+
 
         return [
             Card::make('Farms', $totalFarms)
@@ -50,7 +55,7 @@ class DashboardStats extends BaseWidget
                 ->chart(self::getRandomNumberArray())
                 ->color('primary')
                 ->description($totalPondArea . ' Sq. metre of water body')
-                ->descriptionIcon('fas-sun-plant-wilt'),
+                ->descriptionIcon('fas-water'),
 
             Card::make('Livestock', $totalLivestock)
                 ->chart(self::getRandomNumberArray())
@@ -61,6 +66,12 @@ class DashboardStats extends BaseWidget
             Card::make('Workers', $totalWorkers)
                 ->chart(self::getRandomNumberArray())
                 ->description('Over ' . $totalDepartments . ' departments')
+                ->color('primary')
+                ->descriptionIcon('fas-person-digging'),
+
+            Card::make('Customers', $totalCustomers)
+                ->chart(self::getRandomNumberArray())
+                ->description('Ordering ' . $totalProducts . ' products')
                 ->color('primary')
                 ->descriptionIcon('fas-person-digging'),
         ];

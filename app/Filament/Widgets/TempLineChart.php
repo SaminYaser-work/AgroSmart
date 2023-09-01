@@ -18,7 +18,7 @@ class TempLineChart extends ApexChartWidget
 
     protected function getHeading(): ?string
     {
-        return 'Hourly Temperature Report ' . Carbon::now()->format('d M, Y') . ' to ' . Carbon::now()->addDays(1)->format('d M, Y');
+        return 'Hourly Temperature Report From ' . Carbon::now()->format('d M, Y') . ' to ' . Carbon::now()->addDays(1)->format('d M, Y');
     }
 
     protected int | string | array $columnSpan = 4;

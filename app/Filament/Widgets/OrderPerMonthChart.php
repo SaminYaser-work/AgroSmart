@@ -52,7 +52,9 @@ class OrderPerMonthChart extends ApexChartWidget
                 ],
             ],
             'xaxis' => [
-                'categories' => array_column($data, 'month'),
+                'categories' => array_map( function ($month) {
+                    return Carbon::create()->month($month)->format('F');
+                }, array_column($data, 'month')),
                 'labels' => [
                     'style' => [
                         'colors' => '#9ca3af',

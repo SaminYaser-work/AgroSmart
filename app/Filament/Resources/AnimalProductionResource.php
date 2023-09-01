@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AnimalProductionResource\Pages;
 use App\Filament\Resources\AnimalProductionResource\RelationManagers;
 use App\Models\AnimalProduction;
+use App\Utils\Enums;
 use Filament\Forms;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
@@ -51,15 +52,21 @@ class AnimalProductionResource extends Resource
                     ->date()
                     ->sortable()
                     ->label('Date'),
-                Tables\Columns\TextColumn::make('farm.name'),
-                Tables\Columns\TextColumn::make('animal.name')
+                Tables\Columns\TextColumn::make('animal')
+                    ->getStateUsing(function (AnimalProduction $record) {
+                        return $record->animal->name . '&nbsp;<span class="'. Enums::$badgeClasses .'">' . $record->animal->type . '</span>'
+                        . '<br/><span class="text-xs">' . $record->farm->name . '</span>';
+                    })
+                    ->html()
                     ->url(fn(AnimalProduction $record) => '/animals/' . $record->animal->id),
-                Tables\Columns\TextColumn::make('animal.type')
-                    ->color('gray'),
+//                Tables\Columns\TextColumn::make('farm.name'),
+//                Tables\Columns\TextColumn::make('animal.type')
+//                    ->color('gray'),
                 Tables\Columns\TextColumn::make('quantity')
                     ->label('Litres')
                     ->sortable(),
             ])
+            ->defaultSort('date')
             ->filters([
                 //
             ])
