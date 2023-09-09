@@ -24,7 +24,13 @@
     {{--        Analyzing...--}}
     {{--    </div>--}}
 
-    @if(!empty($res) && $res != "")
+    @if($hasError)
+        <p class="text-danger-500">
+            An error occurred while analyzing the image. Please try again.
+        </p>
+    @endif
+
+    @if(!empty($res) && $res != "" && !$hasError)
         <div class="filament-forms-card-component rounded-xl border border-gray-300 bg-white p-6">
             <h3 class="text-2xl mb-3 font-bold">
                 Crop Doctor <span

@@ -30,6 +30,7 @@ class DiseaseDetection extends Page implements HasForms
     public $farm;
     public $field;
     public $dd;
+    public bool $hasError = false;
 
     public function mount(): void
     {
@@ -46,6 +47,10 @@ class DiseaseDetection extends Page implements HasForms
         )->post(env('AI_API') . '/dd');
         $res = $response->json();
         foreach ($res as $r) {
+            if(!array_key_exists('confidence', $r)){
+                $this->hasError = true;
+                return;
+            }
             if ($r['confidence'] > 0) {
                 $this->res[] = $r;
             }
