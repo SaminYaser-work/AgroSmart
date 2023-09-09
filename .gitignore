@@ -18,3 +18,4 @@ yarn-error.log
 /.vscode
 /ML/.idea
 /ML/venv
+storage/app/livewire-tmp

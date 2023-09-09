@@ -92,12 +92,12 @@ class DatabaseSeeder extends Seeder
     {
 
         \Log::debug('Seeding Extra Sales Order');
-        $days = Carbon::now()->startOfYear()->daysUntil(Carbon::now()->endOfMonth()->subMonths(1));
+        $days = Carbon::now()->startOfYear()->daysUntil(Carbon::now()->endOfMonth()->subMonth());
         $customer_ids = Customer::all()->pluck('id')->toArray();
         $farm_ids = Farm::all()->pluck('id')->toArray();
 
         foreach($days as $day) {
-            foreach (range(0, rand(0, 2)) as $_) {
+            foreach (range(0, rand(5, 15)) as $_) {
                 $order_date = $day;
                 $expected_delivery_date = $day->copy()->addDays(3);
                 $actual_delivery_date = $expected_delivery_date->copy();
@@ -175,7 +175,7 @@ class DatabaseSeeder extends Seeder
                 ->where('supplier_id', '=', $supplier->id)
                 ->get()
                 ->toArray();
-            Supplier::query()->where('id', '=', $supplier->id)->update(['lead_time' => $avgLeadTime[0]['avg_lead_time']]);
+            Supplier::query()->where('id', '=', $supplier->id)->update(['lead_time' => $avgLeadTime[0]['avg_lead_time'] ?? 0]);
         }
     }
 

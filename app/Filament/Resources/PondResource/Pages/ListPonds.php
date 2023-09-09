@@ -5,13 +5,16 @@ namespace App\Filament\Resources\PondResource\Pages;
 use App\Filament\Resources\PondResource;
 use App\Models\Farm;
 use App\Models\Pond;
+use App\Models\PondMetrics;
 use App\Utils\Enums;
 use Closure;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Support\HtmlString;
 
 class ListPonds extends ListRecords
 {
@@ -34,12 +37,14 @@ class ListPonds extends ListRecords
     protected function getActions(): array
     {
         return [
-            Actions\Action::make('export')
+            Actions\Action::make('start_new_fish_production')
                 ->action(function (array $data) {
                     Pond::query()
                         ->where('id', '=', $data['pond'])
                         ->update([
                             'fish' => $data['fish_type'],
+                            'initial_biomass' => $data['biomass'],
+                            'initial_fish_count' => $data['initial_fish_count'],
                         ]);
 
                     Notification::make()
@@ -47,42 +52,77 @@ class ListPonds extends ListRecords
                         ->send();
                 })
                 ->label('Start New Fish Production')
-                ->form([
-                    Select::make('farm')
-                        ->options(
-                            Farm::all()->pluck('name', 'id')
-                        )
-                        ->reactive()
-//                        ->afterStateUpdated(fn(Closure $set) => $set('pond', null))
-                        ->required(),
-                    Select::make('pond')
-                        ->options(function (Closure $get) {
-                            return Pond::query()
-                                ->where('farm_id', $get('farm'))
-                                ->whereNull('fish')
-                                ->pluck('name', 'id');
-                        })
-                        ->reactive()
-                        ->hidden(fn(Closure $get) => $get('farm') === null)
-                        ->required(),
-                    Select::make('fish_type')
-                        ->options(array_combine(Enums::$FishName, Enums::$FishName))
-                        ->reactive()
-                        ->required()
-                        ->hidden(fn(Closure $get) => $get('pond') === null)
-                        ->placeholder('Select Fish Type'),
-                    TextInput::make('initial_fish_count')
-                        ->numeric()
-                        ->label('Fish Count')
-                        ->hidden(fn(Closure $get) => $get('fish_type') === null)
-                        ->required(),
-                    TextInput::make('biomass')
-                        ->numeric()
-                        ->label('Initial Biomass (Kg)')
-                        ->hidden(fn(Closure $get) => $get('fish_type') === null)
-                        ->required()
-                ]),
+                ->form(
+                    [
+                        Select::make('farm')
+                            ->options(
+                                Farm::all()->pluck('name', 'id')
+                            )
+                            ->reactive()
+                            ->required(),
+                        Select::make('pond')
+                            ->options(function (Closure $get) {
+                                return Pond::query()
+                                    ->where('farm_id', $get('farm'))
+                                    ->whereNull('fish')
+                                    ->pluck('name', 'id');
+                            })
+                            ->reactive()
+                            ->hidden(fn(Closure $get) => $get('farm') === null)
+                            ->afterStateHydrated(function (Select $component, $state, Closure $set) {
+                                Notification::make()
+                                    ->title('Getting AI Suggestions')
+                                    ->body('Please wait...')
+                                    ->send();
+                            })
+                            ->afterStateUpdated(function (Closure $set, $state) {
+                                if ($state === null) {
+                                    return;
+                                }
+                                $values = array_values(array_slice(PondMetrics::query()
+                                    ->where('pond_id', $state)
+                                    ->first()
+                                    ->toArray(), 1, 3));
+                                $set('pred', $this->getFishPrediction($values));
+                            })
+                            ->required(),
+                        TextInput::make('pred')
+                            ->default('Select a Pond to see suggestion')
+                            ->label(new HtmlString('Suggested Fish <span style="font-weight: bolder; background: linear-gradient(to right, blue, violet); -webkit-background-clip: text; color: transparent;">(AI)</span>'))
+                            ->hidden(fn(Closure $get) => $get('pond') === null)
+                            ->disabled()
+                            ->required(false),
+                        Select::make('fish_type')
+                            ->options(array_combine(Enums::$FishName, Enums::$FishName))
+                            ->reactive()
+                            ->required()
+                            ->hidden(fn(Closure $get) => $get('pond') === null)
+                            ->placeholder('Select Fish Type'),
+                        TextInput::make('initial_fish_count')
+                            ->numeric()
+                            ->label('Fish Count')
+                            ->hidden(fn(Closure $get) => $get('fish_type') === null)
+                            ->required(),
+                        TextInput::make('biomass')
+                            ->numeric()
+                            ->label('Initial Biomass (Kg)')
+                            ->hidden(fn(Closure $get) => $get('fish_type') === null)
+                            ->required()
+                    ]
+                ),
             Actions\CreateAction::make()->label('Add New Pond'),
         ];
+    }
+
+    private function getFishPrediction(array $values): string
+    {
+        $response = \Http::post(env('AI_API') . '/fish', [
+            "metric" => $values
+        ]);
+        $res = $response->json();
+        if (array_key_exists('fish', $res)) {
+            return $res['fish'] . ' (' . $res['confidence'] . '%)';
+        }
+        return 'Error';
     }
 }

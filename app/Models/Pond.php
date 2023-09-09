@@ -17,6 +17,8 @@ class Pond extends Model
         'pond_type',
         'water_type',
         'fish',
+        'initial_biomass',
+        'initial_fish_count',
         'size',
         'farm_id',
     ];

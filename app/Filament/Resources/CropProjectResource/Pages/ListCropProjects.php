@@ -22,6 +22,7 @@ class ListCropProjects extends ListRecords
     protected function getActions(): array
     {
         return [
+            Actions\Action::make('dd')->label('Disease Detection')->url(CropProjectResource::getUrl('dd')),
             Actions\CreateAction::make()->label('New Crop Production'),
         ];
     }

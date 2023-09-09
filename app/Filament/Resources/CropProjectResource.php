@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CropProjectResource\Pages;
 use App\Filament\Resources\CropProjectResource\RelationManagers;
 use App\Models\CropProject;
+use App\Models\Farm;
+use App\Models\Field;
 use App\Models\Storage;
 use App\Utils\Enums;
 use Closure;
@@ -13,8 +15,6 @@ use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
-use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Database\Eloquent\Model;
 
 class CropProjectResource extends Resource
 {
@@ -38,18 +38,55 @@ class CropProjectResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('crop')
-//                    ->options(array_combine(Enums::$CropName, Enums::$CropName))
-                    ->hiddenOn('edit'),
+                Forms\Components\Select::make('farm_id')
+                    ->options(function () {
+                        return Farm::all()->pluck('name', 'id');
+                    })
+                    ->label('Farm')
+                    ->afterStateUpdated(function (Closure $set, Closure $get) {
+                        $set('field_id',
+                            Field::query()
+                                ->where('farm_id', $get('farm_id'))
+                                ->where('status', '=', false)
+                                ->orderBy('name')
+                                ->pluck('name', 'id')
+                                ->first()
+                        );
+                    })
+                    ->reactive()
+                    ->required(),
+
+                Forms\Components\Select::make('crop_name')
+                    ->label('Crop')
+                    ->options(array_combine(Enums::$CropName, Enums::$CropName))
+                    ->required()
+                    ->disabledOn('edit'),
+
+                Forms\Components\Select::make('field_id')
+                    ->options(function (Closure $get) {
+                        return Field::query()
+                            ->where('farm_id', $get('farm_id'))
+                            ->pluck('name', 'id');
+                    })
+                    ->label('Field')
+                    ->required(),
+
                 Forms\Components\DatePicker::make('start_date')
-                    ->required()->default(now()->format('Y-m-d')),
+                    ->required()
+                    ->default(now()->format('Y-m-d')),
+
                 Forms\Components\DatePicker::make('end_date')
                     ->requiredIf('status', "Stored")
-                    ->after('start_date')->hiddenOn('create'),
+                    ->after('start_date')
+                    ->hiddenOn('create'),
+
+
                 Forms\Components\Select::make('status')
+                    ->hiddenOn('create')
                     ->options(array_combine(Enums::$CropStage, Enums::$CropStage))
                     ->reactive()
                     ->required(),
+
                 Forms\Components\TextInput::make('yield')
                     ->requiredIf('status', "Stored")
                     ->label('Yield (tonne)')
@@ -57,7 +94,9 @@ class CropProjectResource extends Resource
                         return $get('status') != "Stored";
                     })
                     ->hiddenOn('create'),
+
                 Forms\Components\Select::make('storage_id')
+                    ->hiddenOn('create')
                     ->options(function (Closure $get, CropProject $record) {
                         return Storage::query()
                             ->where('farm_id', $record->farm_id)
@@ -121,6 +160,7 @@ class CropProjectResource extends Resource
             'index' => Pages\ListCropProjects::route('/'),
             'create' => Pages\CreateCropProject::route('/create'),
             'edit' => Pages\EditCropProject::route('/{record}/edit'),
+            'dd' => Pages\DiseaseDetection::route('/disease-detection'),
         ];
     }
 }
