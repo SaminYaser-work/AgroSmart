@@ -56,5 +56,5 @@ jobs:
         with:
           app-name: 'agrosmart'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_29EAC879C43E4D099A2ABE1B626D4AE3 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8B41D78513FE47FD977E803404D20A3C }}
           package: .
