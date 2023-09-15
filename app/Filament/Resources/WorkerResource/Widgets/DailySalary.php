@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\WorkerResource\Widgets;
 
 use App\Http\Controllers\SalaryController;
+use App\Models\Attendance;
 use App\Models\Worker;
 use Filament\Tables;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -53,7 +54,7 @@ class DailySalary extends BaseWidget
                 ])
                 ->placeholder('Select Month')
                 ->query(function (Builder $query, array $data) {
-                    $query->whereMonth('attendances.date', $data['value']);
+                    $query->whereMonth('date', $data['value']);
                 })
                 ->default(date('m')),
 //            Tables\Filters\SelectFilter::make('year')

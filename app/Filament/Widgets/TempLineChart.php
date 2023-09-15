@@ -35,8 +35,12 @@ class TempLineChart extends ApexChartWidget
             return [];
         }
 
-        $response = Http::get('https://api.open-meteo.com/v1/forecast?latitude=23.7104&longitude=90.4074&hourly=temperature_2m,relativehumidity_2m,rain');
-        $data = $response->json();
+        try {
+            $response = Http::get('https://api.open-meteo.com/v1/forecast?latitude=23.7104&longitude=90.4074&hourly=temperature_2m,relativehumidity_2m,rain');
+            $data = $response->json();
+        } catch (\Exception $e) {
+            return [];
+        }
 
 
         return [

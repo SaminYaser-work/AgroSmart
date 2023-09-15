@@ -69,11 +69,11 @@ class SalaryResource extends Resource
                 Tables\Columns\TextColumn::make('month')
                     ->getStateUsing(fn($record, $column) => date('F', mktime(0, 0, 0, $record->month, 10))),
                 Tables\Columns\TextColumn::make('year'),
-                Tables\Columns\TextColumn::make('base')->sortable()->money('bdt'),
-                Tables\Columns\TextColumn::make('overtime')->sortable()->money('bdt'),
-                Tables\Columns\TextColumn::make('penalty')->sortable()->money('bdt'),
-                Tables\Columns\TextColumn::make('bonus')->sortable()->money('bdt'),
-                Tables\Columns\TextColumn::make('total')->sortable()->money('bdt'),
+                Tables\Columns\TextColumn::make('base')->sortable()->money('bdt', true),
+                Tables\Columns\TextColumn::make('overtime')->sortable()->money('bdt', true),
+                Tables\Columns\TextColumn::make('penalty')->sortable()->money('bdt', true),
+                Tables\Columns\TextColumn::make('bonus')->sortable()->money('bdt', true),
+                Tables\Columns\TextColumn::make('total')->sortable()->money('bdt', true),
                 Tables\Columns\IconColumn::make('paid')->boolean()
                     ->trueIcon('heroicon-o-check-circle')
                     ->falseIcon('heroicon-o-x-circle')

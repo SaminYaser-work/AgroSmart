@@ -33,15 +33,22 @@ class MilkProductionComparisonChart extends ApexChartWidget
             return [];
         }
 
+//        $data = AnimalProduction::query()
+//            ->where('type', '=', 'Milk')
+//            ->selectRaw('EXTRACT( YEAR_MONTH FROM `date` ) as m, SUM(quantity) as quantity')
+//            ->groupByRaw('m')
+//            ->get()
+//            ->toArray();
+
         $data = AnimalProduction::query()
             ->where('type', '=', 'Milk')
-            ->selectRaw('EXTRACT( YEAR_MONTH FROM `date` ) as m, SUM(quantity) as quantity')
-            ->groupByRaw('m')
+            ->selectRaw("strftime('%Y-%m', `date`) as m, SUM(quantity) as quantity")
+            ->groupByRaw("m")
             ->get()
             ->toArray();
 
         $data = array_map(function ($item) {
-            $item['m'] = Carbon::createFromFormat('Ym', $item['m'])->format('F Y');
+            $item['m'] = Carbon::createFromFormat('Y-m', $item['m'])->format('F Y');
             return $item;
         }, $data);
 

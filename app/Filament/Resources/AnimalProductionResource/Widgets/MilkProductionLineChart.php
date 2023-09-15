@@ -23,16 +23,25 @@ class MilkProductionLineChart extends ApexChartWidget
     {
         parent::__construct();
 
+//        $this->year_months = AnimalProduction::query()
+//            ->where('type', '=', 'Milk')
+//            ->distinct()
+//            ->selectRaw('EXTRACT( YEAR_MONTH FROM `date` ) as date')
+//            ->orderBy('date', 'desc')
+//            ->get()
+//            ->toArray();
+
         $this->year_months = AnimalProduction::query()
             ->where('type', '=', 'Milk')
             ->distinct()
-            ->selectRaw('EXTRACT( YEAR_MONTH FROM `date` ) as date')
+            ->selectRaw("strftime('%Y-%m', `date`) as date")
             ->orderBy('date', 'desc')
             ->get()
+            ->pluck('date')
             ->toArray();
 
         $this->year_months = array_map(function ($year_month) {
-            return Carbon::createFromFormat('Ym', $year_month['date'])->format('F Y');
+            return Carbon::createFromFormat('Y-m', $year_month)->format('F Y');
         }, $this->year_months);
     }
 

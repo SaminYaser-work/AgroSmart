@@ -13,6 +13,8 @@ use App\Models\Farm;
 use App\Models\Field;
 use App\Models\Inventory;
 use App\Models\Pond;
+use App\Models\PondMetrics;
+use App\Models\PondWeeklyReport;
 use App\Models\PurchaseOrder;
 use App\Models\Salary;
 use App\Models\SalesOrder;
@@ -22,7 +24,6 @@ use App\Models\User;
 use App\Models\Worker;
 use App\Utils\Enums;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -73,7 +74,7 @@ class DatabaseSeeder extends Seeder
         Supplier::factory(30)->create();
         $this->seedPurchaseOrders();
 
-        $this->seedWorkers();
+        $this->seedAttendances();
         $this->seedStorage();
         $this->seedAnimals();
         $this->seedAnimalProduction();
@@ -86,51 +87,15 @@ class DatabaseSeeder extends Seeder
         $this->seedCropProjects();
         $this->seedInventory();
         $this->seedPonds();
-    }
 
-    private function seedExtraSalesOrder(): void
-    {
-
-        \Log::debug('Seeding Extra Sales Order');
-        $days = Carbon::now()->startOfYear()->daysUntil(Carbon::now()->endOfMonth()->subMonth());
-        $customer_ids = Customer::all()->pluck('id')->toArray();
-        $farm_ids = Farm::all()->pluck('id')->toArray();
-
-        foreach($days as $day) {
-            foreach (range(0, rand(5, 15)) as $_) {
-                $order_date = $day;
-                $expected_delivery_date = $day->copy()->addDays(3);
-                $actual_delivery_date = $expected_delivery_date->copy();
-
-                $quantity = fake()->numberBetween(1, 100);
-                $unit_price = fake()->randomFloat(2, 100, 2000);
-                $amount = $quantity * $unit_price;
-
-                $type = fake()->randomElement(Enums::$ItemType);
-                $unit = $type === 'Dairy' ? 'litre' : 'kg';
-                $data = [
-                    'name' => fake()->randomElement(Enums::$SaleItem),
-                    'type' => $type,
-                    'order_date' => $order_date,
-                    'expected_delivery_date' => $expected_delivery_date->toDateString(),
-                    'actual_delivery_date' => $actual_delivery_date->toDateString(),
-                    'quantity' => $quantity,
-                    'unit_price' => $unit_price,
-                    'amount' => $amount,
-                    'unit' => $unit,
-                    'customer_id' => fake()->randomElement($customer_ids),
-                    'farm_id' => fake()->randomElement($farm_ids)
-                ];
-                SalesOrder::create($data);
-            }
-        }
-
+        \Log::debug('Seeding Done');
     }
 
     private function seedPurchaseOrders(): void
     {
         \Log::debug('Seeding Purchase Orders');
         $suppliers = Supplier::all();
+        $rows = [];
         foreach ($suppliers as $supplier) {
             foreach (range(0, 10) as $i) {
                 $order_date = \Illuminate\Support\Carbon::now()->subDays(rand(1, 30));
@@ -163,26 +128,32 @@ class DatabaseSeeder extends Seeder
                     'farm_id' => fake()->randomElement(Farm::all()->pluck('id')->toArray())
                 ];
 
-                $purchaseOrder = new PurchaseOrder();
-                $purchaseOrder->fill($data);
-                $purchaseOrder->save();
+                $rows[] = $data;
             }
+        }
 
+        PurchaseOrder::query()->insert($rows);
+
+        foreach ($suppliers as $supplier) {
             //  Update lead time
             $avgLeadTime = PurchaseOrder::query()
-                ->select(\DB::raw('AVG(TIMESTAMPDIFF(DAY, order_date, actual_delivery_date)) as avg_lead_time'))
+//                ->select(\DB::raw('AVG(TIMESTAMPDIFF(DAY, order_date, actual_delivery_date)) as avg_lead_time')) // MySQL Version
+                ->select(\DB::raw('AVG(julianday(order_date) - julianday(actual_delivery_date)) as avg_lead_time')) // SQLite Version
                 ->whereNotNull('actual_delivery_date')
                 ->where('supplier_id', '=', $supplier->id)
-                ->get()
-                ->toArray();
-            Supplier::query()->where('id', '=', $supplier->id)->update(['lead_time' => $avgLeadTime[0]['avg_lead_time'] ?? 0]);
+                ->pluck('avg_lead_time')
+                ->first();
+            \Log::info('Average Lead Time: ' . $avgLeadTime);
+            Supplier::query()->where('id', '=', $supplier->id)->update(['lead_time' => $avgLeadTime]);
         }
     }
 
-    private function seedWorkers(): void
+    private function seedAttendances(): void
     {
-        \Log::debug('Seeding Workers');
-        Worker::all()->each(function ($worker) {
+        \Log::debug('Seeding Attendances');
+        $rows = [];
+        $workers = Worker::all();
+        foreach ($workers as $worker) {
             foreach ($this->period as $date) {
                 $data = [
                     'date' => $date->format('Y-m-d'),
@@ -192,23 +163,25 @@ class DatabaseSeeder extends Seeder
                 if (fake()->numberBetween(0, 100) > 5) {
                     $data['time_in'] = fake()->dateTimeBetween('06:00:00', '09:00:00')->format('H:i:s');
                     $data['time_out'] = fake()->dateTimeBetween('18:00:00', '20:00:00')->format('H:i:s');
+                    $data['leave_reason'] = null;
                 } else {
                     $data['time_in'] = null;
                     $data['time_out'] = null;
                     $data['leave_reason'] = fake()->sentence();
                 }
 
-                $at = new Attendance();
-                $at->fill($data);
-                $at->save();
+                $rows[] = $data;
             }
-        });
+        }
+        Attendance::query()->insert($rows);
     }
 
     private function seedStorage(): void
     {
         \Log::debug('Seeding Storage');
-        Farm::all()->each(function ($farm) {
+        $farms = Farm::all();
+        $rows = [];
+        foreach ($farms as $farm) {
             for ($i = 0; $i < 10; $i++) {
                 $max_capacity = fake()->numberBetween(100, 1000);
                 $current_capacity = fake()->numberBetween(0, $max_capacity);
@@ -221,19 +194,18 @@ class DatabaseSeeder extends Seeder
                     'farm_id' => $farm->id,
                 ];
 
-                $storage = new Storage();
-                $storage->fill($data);
-                $storage->save();
+                $rows[] = $data;
             }
         }
-        );
-
+        Storage::query()->insert($rows);
     }
 
     private function seedAnimals(): void
     {
         \Log::debug('Seeding Animals');
-        Storage::query()->where('type', '=', 'Barn')->get()->each(function ($storage) {
+        $storages = Storage::query()->where('type', '=', 'Barn')->get();
+        $rows = [];
+        foreach ($storages as $storage) {
             for ($i = 0; $i < 10; $i++) {
                 $data = [
                     'name' => fake()->firstNameFemale(),
@@ -244,70 +216,107 @@ class DatabaseSeeder extends Seeder
                     'storage_id' => $storage->id,
                     'farm_id' => $storage->farm_id,
                 ];
-                $animal = new Animal();
-                $animal->fill($data);
-                $animal->save();
+                $rows[] = $data;
             }
-        });
+        }
+        Animal::query()->insert($rows);
     }
 
     private function seedAnimalProduction(): void
     {
         \Log::debug('Seeding Animal Production');
-        Animal::query()->where('type', '=', 'Cow')->each(
-            function ($animal) {
-                foreach ($this->period as $date) {
-                    $data = [
-                        'type' => 'Milk',
-                        'date' => $date->format('Y-m-d'),
-                        'quantity' => fake()->numberBetween(1, 10),
-                        'unit' => 'litre',
-                        'animal_id' => $animal->id,
-                        'farm_id' => $animal->farm_id,
-                    ];
-                    $animalProduction = new AnimalProduction();
-                    $animalProduction->fill($data);
-                    $animalProduction->save();
-                }
+        $rows = [];
+        $animals = Animal::query()->where('type', '=', 'Cow')->get();
+        foreach ($animals as $animal) {
+            foreach ($this->period as $date) {
+                $data = [
+                    'type' => 'Milk',
+                    'date' => $date->format('Y-m-d'),
+                    'quantity' => fake()->numberBetween(1, 10),
+                    'unit' => 'litre',
+                    'animal_id' => $animal->id,
+                    'farm_id' => $animal->farm_id,
+                ];
+                $rows[] = $data;
             }
-        );
+        }
+        AnimalProduction::query()->insert($rows);
     }
 
-    private function seedAnimalExpense(): void
+    private function seedSuppliers(): void
     {
-        \Log::debug('Seeding Animal Expense');
-        Animal::query()->where('type', '=', 'Cow')->each(
-            function ($animal) {
-                foreach ($this->period as $date) {
-                    foreach (Enums::$AnimalExpenseType as $type) {
-                        $data = [
-                            'type' => $type,
-                            'day' => $date->day,
-                            'month' => $date->month,
-                            'year' => $date->year,
-                            'amount' => fake()->numberBetween(20, 250),
-                            'animal_id' => $animal->id,
-                            'farm_id' => $animal->farm_id,
-                        ];
-                        AnimalExpense::query()->create($data);
-                    }
-                }
+        \Log::debug('Seeding Suppliers');
+        $rows = [];
+        foreach (Enums::$SupplierType as $supplierType) {
+            for ($i = 0; $i < 10; $i++) {
+                $data = [
+                    'name' => fake()->company(),
+                    'type' => $supplierType,
+                    'address' => fake()->address(),
+                    'phone' => fake()->phoneNumber(),
+                    'email' => fake()->email(),
+                    'lead_time' => fake()->numberBetween(1, 10),
+                ];
+                $rows[] = $data;
             }
-        );
+        }
+        Supplier::query()->insert($rows);
+    }
+
+    private function seedExtraSalesOrder(): void
+    {
+
+        \Log::debug('Seeding Extra Sales Order');
+        $days = Carbon::now()->startOfYear()->daysUntil(Carbon::now()->endOfMonth()->subMonth());
+        $customer_ids = Customer::all()->pluck('id')->toArray();
+        $farm_ids = Farm::all()->pluck('id')->toArray();
+        $rows = [];
+
+        foreach ($days as $day) {
+            foreach (range(0, rand(5, 15)) as $_) {
+                $order_date = $day;
+                $expected_delivery_date = $day->copy()->addDays(3);
+                $actual_delivery_date = $expected_delivery_date->copy();
+
+                $quantity = fake()->numberBetween(1, 100);
+                $unit_price = fake()->randomFloat(2, 100, 2000);
+                $amount = $quantity * $unit_price;
+
+                $type = fake()->randomElement(Enums::$ItemType);
+                $unit = $type === 'Dairy' ? 'litre' : 'kg';
+                $data = [
+                    'name' => fake()->randomElement(Enums::$SaleItem),
+                    'type' => $type,
+                    'order_date' => $order_date,
+                    'expected_delivery_date' => $expected_delivery_date->toDateString(),
+                    'actual_delivery_date' => $actual_delivery_date->toDateString(),
+                    'quantity' => $quantity,
+                    'unit_price' => $unit_price,
+                    'amount' => $amount,
+                    'unit' => $unit,
+                    'customer_id' => fake()->randomElement($customer_ids),
+                    'farm_id' => fake()->randomElement($farm_ids)
+                ];
+                $rows[] = $data;
+            }
+        }
+
+        SalesOrder::query()->insert($rows);
     }
 
     private function seedSalaries(): void
     {
         \Log::debug('Seeding Salaries');
         $now = Carbon::now();
-
-        Worker::all()->each(function ($worker) use ($now) {
+        $rows = [];
+        $workers = Worker::all();
+        foreach ($workers as $worker) {
             for ($i = 0; $i < $this->months; $i++) {
                 $month = $now->copy()->subMonths($i);
 
                 $res = $this->salaryController->getSalaryReportIndividual($worker->id)
-                    ->whereMonth('attendances.date', '=', $month->month)
-                    ->whereYear('attendances.date', '=', $month->year)
+                    ->whereMonth('date', '=', $month->month)
+                    ->whereYear('date', '=', $month->year)
                     ->get()->toArray();
 
                 $total = array_sum(array_column($res, 'total'));
@@ -321,8 +330,7 @@ class DatabaseSeeder extends Seeder
 
                 $isPaid = !($month->month === $now->month && $month->year === $now->year);
 
-                $salary = new Salary();
-                $salary->fill([
+                $data = [
                     'worker_id' => $worker->id,
                     'farm_id' => $worker->farm_id,
                     'month' => $month->month,
@@ -333,11 +341,34 @@ class DatabaseSeeder extends Seeder
                     'bonus' => $bonus,
                     'total' => $total + $bonus,
                     'paid' => $isPaid
-                ]);
-                $salary->save();
-            }
-        });
+                ];
 
+                $rows[] = $data;
+            }
+        }
+
+        Salary::query()->insert($rows);
+    }
+
+    private function seedFields(): void
+    {
+        \Log::debug('Seeding Fields');
+        $rows = [];
+        $farms = Farm::all();
+        foreach ($farms as $farm) {
+            for ($i = 0; $i < 10; $i++) {
+                $data = [
+                    'address' => fake()->address(),
+                    'area' => fake()->numberBetween(10, 100),
+                    'name' => fake()->firstNameFemale(),
+                    'soil_type' => fake()->randomElement(Enums::$SoilType),
+                    'status' => true,
+                    'farm_id' => $farm->id,
+                ];
+                $rows[] = $data;
+            }
+        }
+        Field::query()->insert($rows);
     }
 
     private function seedCropProjects(): void
@@ -345,6 +376,8 @@ class DatabaseSeeder extends Seeder
         \Log::debug('Seeding Crop Projects');
 
         $totalFields = Field::count();
+
+        $rows = [];
 
         if ($totalFields === 0) {
             return;
@@ -370,10 +403,10 @@ class DatabaseSeeder extends Seeder
                 'field_id' => $field['id'],
                 'farm_id' => $field['farm_id']
             ];
-            $crop->fill($data);
-            $crop->save();
+            $rows[] = $data;
             Field::query()->where('id', '=', $field['id'])->update(['status' => false]);
         }
+        CropProject::query()->insert($rows);
     }
 
     private function getRandomSamples(array $array, int $count): array
@@ -386,48 +419,6 @@ class DatabaseSeeder extends Seeder
         return $result;
     }
 
-    private function seedInventory(): void
-    {
-        \Log::debug('Seeding Inventory');
-        $orders = PurchaseOrder::query()->whereNotNull('actual_delivery_date')->get();
-        $orders->every(function (PurchaseOrder $order) {
-
-            $isOperational = fake()->boolean(85);
-            $reasonForFailure = null;
-            if (!$isOperational) {
-                $reasonForFailure = fake()->sentence();
-            }
-
-            [$storageType, $type] = Enums::getStorage($order->type);
-
-            $st = Storage::query()
-                    ->where('type', '=', $storageType)
-                    ->where('farm_id', '=', $order->farm_id)
-                    ->get()->random(1)->first()->pluck('id');
-
-            if (!empty($st)) {
-                $storage_id = fake()->randomElement($st);
-
-                $data = [
-                    'name' => $order->name,
-                    'type' => $order->type,
-                    'is_operational' => $isOperational,
-                    'reason_for_failure' => $reasonForFailure,
-                    'buying_price' => $order->amount,
-                    'yearly_depreciation' => $order->amount * rand(1, 10) / 100,
-                    'farm_id' => $order->farm_id,
-                    'supplier_id' => $order->supplier_id,
-                    'purchase_order_id' => $order->id,
-                    'storage_id' => $storage_id,
-                ];
-
-                $inventory = new Inventory();
-                $inventory->fill($data);
-                $inventory->save();
-            }
-        });
-    }
-
     private function seedPonds(): void
     {
         \Log::debug('Seeding Ponds');
@@ -438,7 +429,11 @@ class DatabaseSeeder extends Seeder
 
         $farms = Farm::all();
 
-        foreach($farms as $farm) {
+        $pond_rows = [];
+        $pond_metrics_rows = [];
+        $pond_weekly_report_rows = [];
+
+        foreach ($farms as $farm) {
             foreach (range(0, 10) as $_) {
                 $data = [
                     'name' => fake()->streetName(),
@@ -449,11 +444,13 @@ class DatabaseSeeder extends Seeder
                     'farm_id' => $farm->id,
                 ];
 
-                $pond = new Pond();
-                $pond->fill($data);
-                $pond->save();
+                $pond_rows[] = $data;
+            }
 
-                $r = rand(0, $len);
+            Pond::query()->insert($pond_rows);
+            $ponds = Pond::all();
+            foreach ($ponds as $pond) {
+                $r = rand(0, $len - 1);
                 $metrics_data = [
                     'water_temperature' => $metrics["temperature"][$r],
                     'ph' => $metrics["ph"][$r],
@@ -462,7 +459,9 @@ class DatabaseSeeder extends Seeder
                     'pond_id' => $pond->id,
                 ];
 
-                $pond->pondMetrics()->create($metrics_data);
+                $pond_metrics_rows[] = $metrics_data;
+
+//                $pond->pondMetrics()->create($metrics_data);
 
                 if ($pond->fish) {
 
@@ -470,7 +469,7 @@ class DatabaseSeeder extends Seeder
                     $end = $this->end_date->copy();
                     $weeks = [];
 
-                    while($start->lessThan($end)) {
+                    while ($start->lessThan($end)) {
                         $start->addDays(7);
                         $weeks[] = $start->copy();
                     }
@@ -507,50 +506,84 @@ class DatabaseSeeder extends Seeder
                             'pond_id' => $pond->id,
                         ];
 
-                        $pond->pondWeeklyReports()->create($weekly_report_data);
+                        $pond_weekly_report_rows[] = $weekly_report_data;
+//                        $pond->pondWeeklyReports()->create($weekly_report_data);
                     }
                 }
             }
         }
+
+        PondMetrics::query()->insert($pond_metrics_rows);
+        PondWeeklyReport::query()->insert($pond_weekly_report_rows);
     }
 
-    private function seedSuppliers(): void
+    private function seedInventory(): void
     {
-        \Log::debug('Seeding Suppliers');
-        foreach (Enums::$SupplierType as $supplierType) {
-            for ($i = 0; $i < 10; $i++) {
-                $data = [
-                    'name' => fake()->company(),
-                    'type' => $supplierType,
-                    'address' => fake()->address(),
-                    'phone' => fake()->phoneNumber(),
-                    'email' => fake()->email(),
-                    'lead_time' => fake()->numberBetween(1, 10),
-                ];
-                $supplier = new Supplier();
-                $supplier->fill($data);
-                $supplier->save();
+        \Log::debug('Seeding Inventory');
+        $rows = [];
+        $orders = PurchaseOrder::query()->whereNotNull('actual_delivery_date')->get();
+
+        foreach ($orders as $order) {
+            $isOperational = fake()->boolean(85);
+            $reasonForFailure = null;
+            if (!$isOperational) {
+                $reasonForFailure = fake()->sentence();
             }
+
+            [$storageType, $type] = Enums::getStorage($order->type);
+
+            $st = Storage::query()
+                ->where('type', '=', $storageType)
+                ->where('farm_id', '=', $order->farm_id)
+                ->pluck('id');
+
+            if (empty($st)) {
+                continue;
+            }
+
+            $storage_id = fake()->randomElement($st);
+
+            $data = [
+                'name' => $order->name,
+                'type' => $order->type,
+                'is_operational' => $isOperational,
+                'reason_for_failure' => $reasonForFailure,
+                'buying_price' => $order->amount,
+                'yearly_depreciation' => $order->amount * rand(1, 10) / 100,
+                'farm_id' => $order->farm_id,
+                'supplier_id' => $order->supplier_id,
+                'purchase_order_id' => $order->id,
+                'storage_id' => $storage_id,
+            ];
+
+            $rows[] = $data;
         }
+
+        Inventory::query()->insert($rows);
     }
 
-    private function seedFields(): void
+    private function seedAnimalExpense(): void
     {
-        \Log::debug('Seeding Fields');
-        Farm::all()->each(
-            function ($farm) {
-                for ($i = 0; $i < 10; $i++) {
+        \Log::debug('Seeding Animal Expense');
+        $rows = [];
+        $animals = Animal::query()->where('type', '=', 'Cow')->get();
+        foreach ($animals as $animal) {
+            foreach ($this->period as $date) {
+                foreach (Enums::$AnimalExpenseType as $type) {
                     $data = [
-                        'address' => fake()->address(),
-                        'area' => fake()->numberBetween(10, 100),
-                        'name' => fake()->firstNameFemale(),
-                        'soil_type' => fake()->randomElement(Enums::$SoilType),
-                        'status' => true,
-                        'farm_id' => $farm->id,
+                        'type' => $type,
+                        'day' => $date->day,
+                        'month' => $date->month,
+                        'year' => $date->year,
+                        'amount' => fake()->numberBetween(20, 250),
+                        'animal_id' => $animal->id,
+                        'farm_id' => $animal->farm_id,
                     ];
-                    Field::query()->create($data);
+                    $rows[] = $data;
                 }
             }
-        );
+        }
+
+        AnimalExpense::query()->insert($rows);
     }
 }
