@@ -15,6 +15,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\HtmlString;
+use Livewire\Features\Placeholder;
 
 class ListPonds extends ListRecords
 {
@@ -69,12 +70,6 @@ class ListPonds extends ListRecords
                             })
                             ->reactive()
                             ->hidden(fn(Closure $get) => $get('farm') === null)
-                            ->afterStateHydrated(function (Select $component, $state, Closure $set) {
-                                Notification::make()
-                                    ->title('Getting AI Suggestions')
-                                    ->body('Please wait...')
-                                    ->send();
-                            })
                             ->afterStateUpdated(function (Closure $set, $state) {
                                 if ($state === null) {
                                     return;
@@ -88,7 +83,7 @@ class ListPonds extends ListRecords
                             ->required(),
                         TextInput::make('pred')
                             ->default('Select a Pond to see suggestion')
-                            ->label(new HtmlString('Suggested Fish <span style="font-weight: bolder; background: linear-gradient(to right, blue, violet); -webkit-background-clip: text; color: transparent;">(AI)</span>'))
+                            ->label(new HtmlString('Suggested Fish <span style="font-weight: bolder; background: linear-gradient(to right, blue, violet); -webkit-background-clip: text; color: transparent; display: inline-block; animation: gradientAnimation 3s linear infinite;">(AI)</span>'))
                             ->hidden(fn(Closure $get) => $get('pond') === null)
                             ->disabled()
                             ->required(false),
@@ -121,7 +116,7 @@ class ListPonds extends ListRecords
         ]);
         $res = $response->json();
         if (array_key_exists('fish', $res)) {
-            return $res['fish'] . ' (' . $res['confidence'] . '%)';
+            return $res['fish'] . ' (' . ($res['confidence'] * 100) . '%)';
         }
         return 'Error';
     }
