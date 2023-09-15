@@ -13,12 +13,9 @@ cp /home/site/wwwroot/nginx/default /etc/nginx/sites-enabled/ && service nginx r
 # Laravel config
 cd /home/site/wwwroot || echo "Unable to change directory" && exit 1
 cp .env.azure .env
-#php artisan key:generate
 php artisan storage:link
 php artisan config:cache
 php artisan event:cache
 php artisan route:cache
 php artisan view:cache
-
-
-
+php artisan key:generate
