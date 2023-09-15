@@ -11,11 +11,11 @@ chmod -R 755 /home/site/wwwroot/storage
 cp /home/site/wwwroot/nginx/default /etc/nginx/sites-enabled/ && service nginx restart
 
 # Laravel config
-cd /home/site/wwwroot || echo "Unable to change directory" && exit 1
+cd /home/site/wwwroot
 cp .env.azure .env
+php artisan key:generate --force
 php artisan storage:link
 php artisan config:cache
 php artisan event:cache
 php artisan route:cache
 php artisan view:cache
-php artisan key:generate
