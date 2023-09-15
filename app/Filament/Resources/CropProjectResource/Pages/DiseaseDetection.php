@@ -16,6 +16,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Resources\Pages\Page;
 use Illuminate\Support\HtmlString;
+use Mockery\Exception;
 
 class DiseaseDetection extends Page implements HasForms
 {
@@ -45,18 +46,25 @@ class DiseaseDetection extends Page implements HasForms
         }
         foreach ($this->image as $key=>$image) {
             $file_path = $image->getRealPath();
-            $response = \Http::attach(
-                'file', file_get_contents($file_path), $image->getFilename()
-            )->post(env('AI_API') . '/dd');
-            $res = $response->json();
-            foreach ($res as $r) {
-                if(!array_key_exists('confidence', $r)){
-                    $this->hasError = true;
-                    return;
+            try {
+                $response = \Http::attach(
+                    'file', file_get_contents($file_path), $image->getFilename()
+                )->post('https://agrosmartai.azurewebsites.net/dd');
+                $res = $response->json();
+                foreach ($res as $r) {
+                    if(!array_key_exists('confidence', $r)){
+                        \Log::error('Error in Disease Detection API: ' . $res);
+                        $this->hasError = true;
+                        return;
+                    }
+                    if ($r['confidence'] > 0) {
+                        $this->res[] = $r;
+                    }
                 }
-                if ($r['confidence'] > 0) {
-                    $this->res[] = $r;
-                }
+            } catch (Exception $e) {
+                \Log::error('Error in Disease Detection API: ' . $e->getMessage());
+                $this->hasError = true;
+                $this->res = [];
             }
             break;
         }

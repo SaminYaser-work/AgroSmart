@@ -10,22 +10,14 @@ class Animal extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'type',
-        'breed',
-        'color',
-        'gender',
-        'storage_id',
-        'farm_id',
-    ];
+    protected $guarded = [];
 
-    public function storages(): BelongsTo
+    public function storage(): BelongsTo
     {
         return $this->belongsTo(Storage::class);
     }
 
-    public function farms(): BelongsTo
+    public function farm(): BelongsTo
     {
         return $this->belongsTo(Farm::class);
     }

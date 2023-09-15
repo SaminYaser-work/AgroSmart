@@ -111,13 +111,19 @@ class ListPonds extends ListRecords
 
     private function getFishPrediction(array $values): string
     {
-        $response = \Http::post(env('AI_API') . '/fish', [
-            "metric" => $values
-        ]);
-        $res = $response->json();
-        if (array_key_exists('fish', $res)) {
-            return $res['fish'] . ' (' . ($res['confidence'] * 100) . '%)';
+        try {
+            $response = \Http::post('https://agrosmartai.azurewebsites.net/fish', [
+                "metric" => $values
+            ]);
+            $res = $response->json();
+            if (array_key_exists('fish', $res)) {
+                return $res['fish'] . ' (' . ($res['confidence'] * 100) . '%)';
+            }
+            \Log::error('Error in AI response: ' . $res);
+            return 'Error';
+        } catch (\Exception $e) {
+            \Log::error('Error in AI response: ' . $e->getMessage());
+            return 'Error';
         }
-        return 'Error';
     }
 }

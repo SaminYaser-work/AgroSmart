@@ -12,6 +12,7 @@ use Filament\Resources\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\HtmlString;
 
 class AnimalResource extends Resource
 {
@@ -50,12 +51,17 @@ class AnimalResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('storage_id'),
-                Tables\Columns\TextColumn::make('farm_id'),
-                Tables\Columns\TextColumn::make('name'),
-                Tables\Columns\TextColumn::make('type'),
-                Tables\Columns\TextColumn::make('breed'),
-                Tables\Columns\TextColumn::make('gender'),
+                Tables\Columns\TextColumn::make('name')
+                    ->getStateUsing(function (Animal $record) {
+                        return $record->name . ' <br/><span class="text-gray-700 text-xs">' . $record->type . ' (' . $record->breed . ')</span>';
+                    })
+                    ->html()
+                    ->label('Animal Name'),
+                Tables\Columns\TextColumn::make('farm.name'),
+                Tables\Columns\TextColumn::make('storage.name'),
+                Tables\Columns\TextColumn::make('gender')->getStateUsing(function (Animal $record) {
+                    return ucfirst($record->gender);
+                }),
                 Tables\Columns\TextColumn::make('color'),
             ])
             ->filters([

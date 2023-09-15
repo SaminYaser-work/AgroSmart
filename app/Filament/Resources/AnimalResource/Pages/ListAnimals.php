@@ -10,6 +10,13 @@ class ListAnimals extends ListRecords
 {
     protected static string $resource = AnimalResource::class;
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            AnimalResource\Widgets\CowBreedPieChart::class
+        ];
+    }
+
     protected function getActions(): array
     {
         return [
