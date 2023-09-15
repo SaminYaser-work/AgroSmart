@@ -40,20 +40,25 @@ class DiseaseDetection extends Page implements HasForms
 
     public function submit(): void
     {
-        $image = $this->image[array_key_first($this->image)];
-        $file_path = $image->getRealPath();
-        $response = \Http::attach(
-            'file', file_get_contents($file_path), $image->getFilename()
-        )->post(env('AI_API') . '/dd');
-        $res = $response->json();
-        foreach ($res as $r) {
-            if(!array_key_exists('confidence', $r)){
-                $this->hasError = true;
-                return;
+        if (!is_array($this->image)) {
+            return;
+        }
+        foreach ($this->image as $key=>$image) {
+            $file_path = $image->getRealPath();
+            $response = \Http::attach(
+                'file', file_get_contents($file_path), $image->getFilename()
+            )->post(env('AI_API') . '/dd');
+            $res = $response->json();
+            foreach ($res as $r) {
+                if(!array_key_exists('confidence', $r)){
+                    $this->hasError = true;
+                    return;
+                }
+                if ($r['confidence'] > 0) {
+                    $this->res[] = $r;
+                }
             }
-            if ($r['confidence'] > 0) {
-                $this->res[] = $r;
-            }
+            break;
         }
     }
 

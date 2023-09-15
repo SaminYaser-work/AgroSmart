@@ -59,8 +59,7 @@ class CropProjectResource extends Resource
                 Forms\Components\Select::make('crop_name')
                     ->label('Crop')
                     ->options(array_combine(Enums::$CropName, Enums::$CropName))
-                    ->required()
-                    ->disabledOn('edit'),
+                    ->required(),
 
                 Forms\Components\Select::make('field_id')
                     ->options(function (Closure $get) {

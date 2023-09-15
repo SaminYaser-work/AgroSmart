@@ -35,7 +35,7 @@ class OrderPerMonthChart extends ApexChartWidget
         }
 
         $data = SalesOrder::query()
-            ->selectRaw('MONTH(order_date) month, count(MONTH(order_date)) as total_orders')
+            ->selectRaw("strftime('%m', order_date) as month, count(strftime('%m', order_date)) as total_orders")
             ->groupBy('month')
             ->orderBy('month')
             ->get()

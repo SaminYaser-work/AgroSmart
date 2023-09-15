@@ -23,9 +23,9 @@ class SalaryStats extends BaseWidget
     protected function getCards(): array
     {
 
-        $salary_due = money($this->salaryController->getSalaryDue(), 'bdt');
+        $salary_due = money($this->salaryController->getSalaryDue(), 'bdt', true);
 
-        $total_salary_paid = money($this->salaryController->getTotalSalaryPaid(), 'bdt');
+        $total_salary_paid = money($this->salaryController->getTotalSalaryPaid(), 'bdt', true);
 
         return [
             Card::make('Salary Due', $salary_due)

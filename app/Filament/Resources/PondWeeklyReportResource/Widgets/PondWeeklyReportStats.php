@@ -56,6 +56,8 @@ class PondWeeklyReportStats extends BaseWidget
             ->get()
             ->toArray();
 
+//        dd($currWeekData);
+
         $prevWeekAvgData = PondWeeklyReport::query()
             ->where('date', $weeks[1])
             ->selectRaw('AVG(production) as production, AVG(yield) as yield, AVG(survival_rate) as survival_rate, AVG(average_weight) as average_weight, AVG(average_growth) as average_growth, AVG(dissolved_oxygen) as dissolved_oxygen, AVG(water_level) as water_level, AVG(water_temperature) as water_temperature, AVG(ph) as ph, AVG(turbidity) as turbidity, AVG(ammonia) as ammonia, AVG(nitrate) as nitrate')
