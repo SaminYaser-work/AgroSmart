@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Script started" > /home/site/wwwroot/startup_status.txt
+echo "$(date '+%Y-%m-%d %H:%M:%S') Script started" >> /home/logs.txt
 
 # File upload fix
 sed -i 's|abort_unless|//&|g' /home/site/wwwroot/vendor/livewire/livewire/src/Controllers/FileUploadHandler.php
@@ -23,4 +23,4 @@ php artisan event:cache
 php artisan route:cache
 php artisan view:cache
 
-echo "$(date '+%Y-%m-%d %H:%M:%S') Startup script ran successfully." > /home/site/wwwroot/startup_status.txt
+echo "$(date '+%Y-%m-%d %H:%M:%S') Startup script ran successfully." >> /home/logs.txt
