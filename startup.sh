@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo "Script started" > /home/site/wwwroot/startup_status.txt
+
 # File upload fix
 sed -i 's|abort_unless|//&|g' /home/site/wwwroot/vendor/livewire/livewire/src/Controllers/FileUploadHandler.php
 sed -i '/tmpfile/a $tmpfname = tempnam(sys_get_temp_dir(), "");\n$tmpFile = fopen($tmpfname, "w");' /home/site/wwwroot/vendor/livewire/livewire/src/TemporaryUploadedFile.php
@@ -21,4 +23,4 @@ php artisan event:cache
 php artisan route:cache
 php artisan view:cache
 
-echo "Startup script ran successfully." > /home/startup_status.txt
+echo "Startup script ran successfully." > /home/site/wwwroot/startup_status.txt
