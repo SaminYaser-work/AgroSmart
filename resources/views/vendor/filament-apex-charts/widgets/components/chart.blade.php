@@ -33,6 +33,10 @@
                         options.plotOptions.pie.donut.labels.value.formatter = eval(options.plotOptions.pie.donut.labels.value.formatter)
                     }
 
+                    if (options.plotOptions?.pie?.donut?.labels.total && options.plotOptions?.pie?.donut?.labels?.total.formatter) {
+                        options.plotOptions.pie.donut.labels.total.formatter = eval(options.plotOptions.pie.donut.labels.total.formatter)
+                    }
+
                     if (options.yaxis && options.yaxis.labels && options.yaxis.labels.formatter) {
                         options.yaxis.labels.formatter = eval(options.yaxis.labels.formatter)
                     }

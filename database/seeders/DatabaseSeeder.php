@@ -10,7 +10,9 @@ use App\Models\Attendance;
 use App\Models\CropProject;
 use App\Models\Customer;
 use App\Models\Farm;
+use App\Models\FarmingExpenses;
 use App\Models\Field;
+use App\Models\FishExpenses;
 use App\Models\Inventory;
 use App\Models\Pond;
 use App\Models\PondMetrics;
@@ -78,7 +80,6 @@ class DatabaseSeeder extends Seeder
         $this->seedStorage();
         $this->seedAnimals();
         $this->seedAnimalProduction();
-        $this->seedAnimalExpense();
         $this->seedSuppliers();
         $this->seedExtraSalesOrder();
         $this->seedPurchaseOrders();
@@ -87,6 +88,9 @@ class DatabaseSeeder extends Seeder
         $this->seedCropProjects();
         $this->seedInventory();
         $this->seedPonds();
+        $this->seedAnimalExpense();
+        $this->seedFarmingExpense();
+        $this->seedFishExpense();
 
         \Log::debug('Seeding Done');
     }
@@ -238,6 +242,11 @@ class DatabaseSeeder extends Seeder
                     'farm_id' => $animal->farm_id,
                 ];
                 $rows[] = $data;
+
+                if (count($rows) > 1000) {
+                    AnimalProduction::query()->insert($rows);
+                    $rows = [];
+                }
             }
         }
         AnimalProduction::query()->insert($rows);
@@ -580,10 +589,75 @@ class DatabaseSeeder extends Seeder
                         'farm_id' => $animal->farm_id,
                     ];
                     $rows[] = $data;
+
+                    if (count($rows) > 1000) {
+                        AnimalExpense::query()->insert($rows);
+                        $rows = [];
+                    }
                 }
             }
         }
 
         AnimalExpense::query()->insert($rows);
+    }
+
+    private function seedFarmingExpense(): void
+    {
+        \Log::debug('Seeding Farming Expense');
+        $rows = [];
+        $fields = Field::query()->where('status' , '=', false)->get();
+        foreach ($fields as $field) {
+            foreach ($this->period as $date) {
+                foreach (Enums::$FarmExpenseType as $type) {
+                    $data = [
+                        'type' => $type,
+                        'day' => $date->day,
+                        'month' => $date->month,
+                        'year' => $date->year,
+                        'amount' => fake()->numberBetween(20, 250),
+                        'field_id' => $field->id,
+                        'farm_id' => $field->farm_id,
+                    ];
+                    $rows[] = $data;
+
+                    if (count($rows) > 1000) {
+                        FarmingExpenses::query()->insert($rows);
+                        $rows = [];
+                    }
+                }
+            }
+        }
+
+        FarmingExpenses::query()->insert($rows);
+    }
+
+    private function seedFishExpense(): void
+    {
+        \Log::debug('Seeding Fish Expense');
+        $rows = [];
+        $ponds = Pond::query()->whereNotNull('fish')->get();
+        foreach ($ponds as $pond) {
+            foreach ($this->period as $date) {
+                foreach (Enums::$FishExpenseType as $type) {
+                    $data = [
+                        'type' => $type,
+                        'day' => $date->day,
+                        'month' => $date->month,
+                        'year' => $date->year,
+                        'amount' => fake()->numberBetween(20, 250),
+                        'pond_id' => $pond->id,
+                        'farm_id' => $pond->farm_id,
+                    ];
+                    $rows[] = $data;
+
+                    if (count($rows) > 1000) {
+                        FishExpenses::query()->insert($rows);
+                        $rows = [];
+                    }
+                }
+            }
+        }
+
+        FishExpenses::query()->insert($rows);
     }
 }
