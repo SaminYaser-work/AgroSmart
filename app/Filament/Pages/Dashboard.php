@@ -25,6 +25,8 @@ class Dashboard extends BasePage
             Widgets\DashboardStats::class,
             Widgets\DeliveredOrderChart::class,
             Widgets\OrderPerMonthChart::class,
+            Widgets\ExpenseBreakdownChart::class,
+            Widgets\AccountingChart::class,
             Widgets\TempLineChart::class,
             Widgets\LatestOrders::class,
             Widgets\LatestPurchases::class,

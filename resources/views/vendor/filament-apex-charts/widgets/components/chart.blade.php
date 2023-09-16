@@ -13,14 +13,38 @@
                 options: @js($chartOptions),
                 theme: {{ $darkMode ? "document.querySelector('html').matches('.dark') ? 'dark' : 'light'" : "'light'" }},
                 init() {
-            
+
                     $wire.on('updateOptions', async ({ options }) => {
                         this.chart.updateOptions(options, false, true, true);
                     });
-            
+
+                    options = this.options
+
+
+                    if (options.dataLabels && options.dataLabels.formatter) {
+                        options.dataLabels.formatter = eval(options.dataLabels.formatter)
+                    }
+
+                    if (options.tooltip && options.tooltip.custom) {
+                        options.tooltip.custom = eval(options.tooltip.custom)
+                    }
+
+                    if (options.plotOptions?.pie?.donut?.labels.value && options.plotOptions?.pie?.donut?.labels?.value.formatter) {
+                        options.plotOptions.pie.donut.labels.value.formatter = eval(options.plotOptions.pie.donut.labels.value.formatter)
+                    }
+
+                    if (options.yaxis && options.yaxis.labels && options.yaxis.labels.formatter) {
+                        options.yaxis.labels.formatter = eval(options.yaxis.labels.formatter)
+                    }
+
+
+                    if (options.xaxis && options.xaxis.labels && options.xaxis.labels.formatter) {
+                        options.xaxis.labels.formatter = eval(options.xaxis.labels.formatter)
+                    }
+
                     this.options.theme = { mode: this.theme };
                     this.options.chart.background = 'inherit';
-            
+
                     this.chart = new ApexCharts($refs.{{ $chartId }}, this.options);
                     this.chart.render();
                 }

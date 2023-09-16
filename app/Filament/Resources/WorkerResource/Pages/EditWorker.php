@@ -33,7 +33,7 @@ class EditWorker extends EditRecord
     protected function getHeaderWidgets(): array
     {
         return [
-            WorkerResource\Widgets\IndividualWorkerHourBarChart::class,
+            WorkerResource\Widgets\IndividualWorkerHourBarChart2::class,
             WorkerResource\Widgets\IndividualWorkerAttendanceTable::class,
             WorkerResource\Widgets\DailySalary::class
         ];

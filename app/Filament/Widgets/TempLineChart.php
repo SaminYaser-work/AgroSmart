@@ -94,6 +94,7 @@ class TempLineChart extends ApexChartWidget
             'stroke' => [
                 'curve' => 'smooth',
             ],
+            'colors' => ['#22d3ee'],
             'markers' => [
                 'size' => 0,
             ],
