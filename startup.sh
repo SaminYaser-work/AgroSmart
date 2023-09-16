@@ -13,6 +13,7 @@ cp /home/site/wwwroot/nginx/default /etc/nginx/sites-enabled/ && service nginx r
 # Laravel config
 cd /home/site/wwwroot || exit 1
 cp .env.azure .env
+php artisan optimize:clear
 php artisan key:generate --force
 php artisan storage:link
 php artisan config:cache
