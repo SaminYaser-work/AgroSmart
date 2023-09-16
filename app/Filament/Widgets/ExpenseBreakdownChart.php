@@ -42,12 +42,15 @@ class ExpenseBreakdownChart extends ApexChartWidget
 
         $data = [
             [
-                'expense' => 'Salaries',
+                'expense' => 'Worker Salaries',
                 'amount' => Salary::sum('total')
             ],
             [
                 'expense' => 'Purchases',
                 'amount' => PurchaseOrder::sum('amount'),
+            ],
+            [
+
             ],
         ];
 
@@ -78,18 +81,6 @@ class ExpenseBreakdownChart extends ApexChartWidget
                     return w.globals.labels[seriesIndex] + ': ' + formatter.format(series[seriesIndex])
                 }",
             ]
-//            'fill' => [
-//                'type' => 'gradient',
-//                'gradient' => [
-//                    'shade' => 'dark',
-//                    'gradientToColors' => ['dodgerblue', 'blue'],
-//                    'shadeIntensity' => 1,
-//                    'type' => 'vertical',
-//                    'opacityFrom' => 1,
-//                    'opacityTo' => 1,
-//                    'stops' => [0, 90, 100]
-//                ],
-//            ],
         ];
     }
 }

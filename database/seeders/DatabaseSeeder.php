@@ -78,7 +78,7 @@ class DatabaseSeeder extends Seeder
         $this->seedStorage();
         $this->seedAnimals();
         $this->seedAnimalProduction();
-//        $this->seedAnimalExpense();
+        $this->seedAnimalExpense();
         $this->seedSuppliers();
         $this->seedExtraSalesOrder();
         $this->seedPurchaseOrders();

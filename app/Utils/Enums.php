@@ -147,15 +147,25 @@ class Enums
         'Loamy',
     ];
 
-    public static array $FieldStatus = [
-        true, false
-    ];
-
     public static array $AnimalExpenseType = [
         'Feed',
         'Supplements',
         'Medicine',
         'Hygiene/Sanitation',
+        'Maintenance/Repair',
+    ];
+
+    public static array $FarmExpenseType = [
+        'Fertilizer',
+        'Fuel',
+        'Irrigation',
+        'Maintenance/Repair',
+    ];
+
+    public static array $FishExpenseType = [
+        'Water Management/Treatment',
+        'Maintenance/Repair',
+        'Fuel',
     ];
 
     public static array $ItemType = [
