@@ -10,6 +10,8 @@ mkdir /home/site/wwwroot/storage/app/public/livewire-tmp
 chmod -R 755 /home/site/wwwroot/storage
 echo "$(date '+%Y-%m-%d %H:%M:%S') File upload fix applied" >> /home/logs.txt
 
+echo "$(date '+%Y-%m-%d %H:%M:%S') Installing Supervisor" >> /home/logs.txt
+apt-get install supervisor -y && service supervisor start
 
 # Laravel config
 cd /home/site/wwwroot || exit 1

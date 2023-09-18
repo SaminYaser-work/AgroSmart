@@ -56,9 +56,6 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip
 
-      - name: Install Supervisor
-        run: sudo apt-get install supervisor -y && sudo service supervisor start
-
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
