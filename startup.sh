@@ -10,9 +10,6 @@ mkdir /home/site/wwwroot/storage/app/public/livewire-tmp
 chmod -R 755 /home/site/wwwroot/storage
 echo "$(date '+%Y-%m-%d %H:%M:%S') File upload fix applied" >> /home/logs.txt
 
-# Nginx config
-cp /home/site/wwwroot/nginx/default /etc/nginx/sites-enabled/ && service nginx restart
-echo "$(date '+%Y-%m-%d %H:%M:%S') NGINX configured" >> /home/logs.txt
 
 # Laravel config
 cd /home/site/wwwroot || exit 1
@@ -25,4 +22,9 @@ php artisan event:cache
 php artisan route:cache
 php artisan view:cache
 echo "$(date '+%Y-%m-%d %H:%M:%S') Laravel deploy task completed" >> /home/logs.txt
+# Nginx config
+cp /home/site/wwwroot/nginx/default /etc/nginx/sites-enabled/ && service nginx restart
+echo "$(date '+%Y-%m-%d %H:%M:%S') NGINX configured" >> /home/logs.txt
+
+
 echo "$(date '+%Y-%m-%d %H:%M:%S') Startup script ran successfully." >> /home/logs.txt

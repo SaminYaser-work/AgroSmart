@@ -14,6 +14,7 @@ use App\Models\FarmingExpenses;
 use App\Models\Field;
 use App\Models\FishExpenses;
 use App\Models\Inventory;
+use App\Models\OtherExpenses;
 use App\Models\Pond;
 use App\Models\PondMetrics;
 use App\Models\PondWeeklyReport;
@@ -21,6 +22,7 @@ use App\Models\PurchaseOrder;
 use App\Models\Salary;
 use App\Models\SalesOrder;
 use App\Models\Storage;
+use App\Models\StorageExpenses;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Models\Worker;
@@ -35,6 +37,8 @@ class DatabaseSeeder extends Seeder
     private \Carbon\CarbonPeriod $period;
     private Carbon $end_date;
     private Carbon $start_date;
+
+    private int $batch_insert_limit = 5000;
 
     private SalaryController $salaryController;
 
@@ -91,6 +95,8 @@ class DatabaseSeeder extends Seeder
         $this->seedAnimalExpense();
         $this->seedFarmingExpense();
         $this->seedFishExpense();
+        $this->seedStorageExpense();
+        $this->seedOtherExpense();
 
         \Log::debug('Seeding Done');
     }
@@ -428,104 +434,6 @@ class DatabaseSeeder extends Seeder
         return $result;
     }
 
-    private function seedPonds(): void
-    {
-        \Log::debug('Seeding Ponds');
-
-        $metrics_path = storage_path('pond.json');
-        $metrics = json_decode(file_get_contents($metrics_path), true);
-        $len = count($metrics["ph"]);
-
-        $farms = Farm::all();
-
-        $pond_rows = [];
-        $pond_metrics_rows = [];
-        $pond_weekly_report_rows = [];
-
-        foreach ($farms as $farm) {
-            foreach (range(0, 10) as $_) {
-                $data = [
-                    'name' => fake()->streetName(),
-                    'pond_type' => Enums::$PondType[0],
-                    'water_type' => fake()->randomElement(Enums::$WaterType),
-                    'fish' => fake()->boolean(70) ? fake()->randomElement(Enums::$FishName) : null,
-                    'size' => fake()->randomFloat(2, 50, 100),
-                    'farm_id' => $farm->id,
-                ];
-
-                $pond_rows[] = $data;
-            }
-
-            Pond::query()->insert($pond_rows);
-            $ponds = Pond::all();
-            foreach ($ponds as $pond) {
-                $r = rand(0, $len - 1);
-                $metrics_data = [
-                    'water_temperature' => $metrics["temperature"][$r],
-                    'ph' => $metrics["ph"][$r],
-                    'turbidity' => $metrics["turbidity"][$r],
-                    'farm_id' => $farm->id,
-                    'pond_id' => $pond->id,
-                ];
-
-                $pond_metrics_rows[] = $metrics_data;
-
-//                $pond->pondMetrics()->create($metrics_data);
-
-                if ($pond->fish) {
-
-                    $start = $this->start_date->copy();
-                    $end = $this->end_date->copy();
-                    $weeks = [];
-
-                    while ($start->lessThan($end)) {
-                        $start->addDays(7);
-                        $weeks[] = $start->copy();
-                    }
-
-                    foreach ($weeks as $week) {
-                        $production = fake()->randomFloat(2, 100, 1000);
-                        $yield = $production / $pond->size;
-                        $survival_rate = fake()->randomFloat(2, 90, 100);
-                        $average_weight = fake()->randomFloat(2, 0.5, 2);
-                        $average_growth = fake()->randomFloat(2, 0.5, 2);
-                        $dissolved_oxygen = fake()->randomFloat(2, 0.5, 2);
-                        $water_level = fake()->randomFloat(2, 0.5, 2);
-                        $water_temperature = fake()->randomFloat(2, 0.5, 2);
-                        $ph = fake()->randomFloat(2, 0.5, 2);
-                        $turbidity = fake()->randomFloat(2, 0.5, 2);
-                        $ammonia = fake()->randomFloat(2, 0.5, 2);
-                        $nitrate = fake()->randomFloat(2, 0.5, 2);
-
-                        $weekly_report_data = [
-                            'date' => $week->endOfWeek()->toDateString(),
-                            'production' => $production,
-                            'yield' => $yield,
-                            'survival_rate' => $survival_rate,
-                            'average_weight' => $average_weight,
-                            'average_growth' => $average_growth,
-                            'dissolved_oxygen' => $dissolved_oxygen,
-                            'water_level' => $water_level,
-                            'water_temperature' => $water_temperature,
-                            'ph' => $ph,
-                            'turbidity' => $turbidity,
-                            'ammonia' => $ammonia,
-                            'nitrate' => $nitrate,
-                            'farm_id' => $farm->id,
-                            'pond_id' => $pond->id,
-                        ];
-
-                        $pond_weekly_report_rows[] = $weekly_report_data;
-//                        $pond->pondWeeklyReports()->create($weekly_report_data);
-                    }
-                }
-            }
-        }
-
-        PondMetrics::query()->insert($pond_metrics_rows);
-        PondWeeklyReport::query()->insert($pond_weekly_report_rows);
-    }
-
     private function seedInventory(): void
     {
         \Log::debug('Seeding Inventory');
@@ -571,6 +479,103 @@ class DatabaseSeeder extends Seeder
         Inventory::query()->insert($rows);
     }
 
+    private function seedPonds(): void
+    {
+        \Log::debug('Seeding Ponds');
+
+        $metrics_path = storage_path('pond.json');
+        $metrics = json_decode(file_get_contents($metrics_path), true);
+        $len = count($metrics["ph"]);
+
+        $farms = Farm::all();
+
+        $pond_rows = [];
+        $pond_metrics_rows = [];
+        $pond_weekly_report_rows = [];
+
+        foreach ($farms as $farm) {
+            foreach (range(0, 10) as $_) {
+                $data = [
+                    'name' => fake()->streetName(),
+                    'pond_type' => Enums::$PondType[0],
+                    'water_type' => fake()->randomElement(Enums::$WaterType),
+                    'fish' => fake()->boolean(70) ? fake()->randomElement(Enums::$FishName) : null,
+                    'size' => fake()->randomFloat(2, 50, 100),
+                    'farm_id' => $farm->id,
+                ];
+
+                $pond_rows[] = $data;
+            }
+        }
+
+        Pond::query()->insert($pond_rows);
+
+        $ponds = Pond::all();
+
+        foreach ($ponds as $pond) {
+            $r = rand(0, $len - 1);
+            $metrics_data = [
+                'water_temperature' => $metrics["temperature"][$r],
+                'ph' => $metrics["ph"][$r],
+                'turbidity' => $metrics["turbidity"][$r],
+                'farm_id' => $pond->farm_id,
+                'pond_id' => $pond->id,
+            ];
+
+            $pond_metrics_rows[] = $metrics_data;
+
+            if ($pond->fish) {
+
+                $start = $this->start_date->copy();
+                $end = $this->end_date->copy();
+                $weeks = [];
+
+                while ($start->lessThan($end)) {
+                    $start->addDays(7);
+                    $weeks[] = $start->copy();
+                }
+
+                foreach ($weeks as $week) {
+                    $production = fake()->randomFloat(2, 100, 1000);
+                    $yield = $production / $pond->size;
+                    $survival_rate = fake()->randomFloat(2, 90, 100);
+                    $average_weight = fake()->randomFloat(2, 0.5, 2);
+                    $average_growth = fake()->randomFloat(2, 0.5, 2);
+                    $dissolved_oxygen = fake()->randomFloat(2, 0.5, 2);
+                    $water_level = fake()->randomFloat(2, 0.5, 2);
+                    $water_temperature = fake()->randomFloat(2, 0.5, 2);
+                    $ph = fake()->randomFloat(2, 0.5, 2);
+                    $turbidity = fake()->randomFloat(2, 0.5, 2);
+                    $ammonia = fake()->randomFloat(2, 0.5, 2);
+                    $nitrate = fake()->randomFloat(2, 0.5, 2);
+
+                    $weekly_report_data = [
+                        'date' => $week->endOfWeek()->toDateString(),
+                        'production' => $production,
+                        'yield' => $yield,
+                        'survival_rate' => $survival_rate,
+                        'average_weight' => $average_weight,
+                        'average_growth' => $average_growth,
+                        'dissolved_oxygen' => $dissolved_oxygen,
+                        'water_level' => $water_level,
+                        'water_temperature' => $water_temperature,
+                        'ph' => $ph,
+                        'turbidity' => $turbidity,
+                        'ammonia' => $ammonia,
+                        'nitrate' => $nitrate,
+                        'farm_id' => $farm->id,
+                        'pond_id' => $pond->id,
+                    ];
+
+                    $pond_weekly_report_rows[] = $weekly_report_data;
+                }
+            }
+        }
+
+        PondMetrics::query()->insert($pond_metrics_rows);
+        PondWeeklyReport::query()->insert($pond_weekly_report_rows);
+    }
+
     private function seedAnimalExpense(): void
     {
         \Log::debug('Seeding Animal Expense');
@@ -579,8 +584,10 @@ class DatabaseSeeder extends Seeder
         foreach ($animals as $animal) {
             foreach ($this->period as $date) {
                 foreach (Enums::$AnimalExpenseType as $type) {
+                    if (fake()->boolean(30)) continue;
                     $data = [
                         'type' => $type,
+                        'date' => $date->toDateString(),
                         'day' => $date->day,
                         'month' => $date->month,
                         'year' => $date->year,
@@ -590,7 +597,7 @@ class DatabaseSeeder extends Seeder
                     ];
                     $rows[] = $data;
 
-                    if (count($rows) > 1000) {
+                    if (count($rows) > $this->batch_insert_limit) {
                         AnimalExpense::query()->insert($rows);
                         $rows = [];
                     }
@@ -605,22 +612,21 @@ class DatabaseSeeder extends Seeder
     {
         \Log::debug('Seeding Farming Expense');
         $rows = [];
-        $fields = Field::query()->where('status' , '=', false)->get();
+        $fields = Field::query()->where('status', '=', false)->get();
         foreach ($fields as $field) {
             foreach ($this->period as $date) {
                 foreach (Enums::$FarmExpenseType as $type) {
+                    if (fake()->boolean(30)) continue;
                     $data = [
                         'type' => $type,
-                        'day' => $date->day,
-                        'month' => $date->month,
-                        'year' => $date->year,
+                        'date' => $date->toDateString(),
                         'amount' => fake()->numberBetween(20, 250),
                         'field_id' => $field->id,
                         'farm_id' => $field->farm_id,
                     ];
                     $rows[] = $data;
 
-                    if (count($rows) > 1000) {
+                    if (count($rows) > $this->batch_insert_limit) {
                         FarmingExpenses::query()->insert($rows);
                         $rows = [];
                     }
@@ -639,18 +645,17 @@ class DatabaseSeeder extends Seeder
         foreach ($ponds as $pond) {
             foreach ($this->period as $date) {
                 foreach (Enums::$FishExpenseType as $type) {
+                    if (fake()->boolean(30)) continue;
                     $data = [
                         'type' => $type,
-                        'day' => $date->day,
-                        'month' => $date->month,
-                        'year' => $date->year,
+                        'date' => $date->toDateString(),
                         'amount' => fake()->numberBetween(20, 250),
                         'pond_id' => $pond->id,
                         'farm_id' => $pond->farm_id,
                     ];
                     $rows[] = $data;
 
-                    if (count($rows) > 1000) {
+                    if (count($rows) > $this->batch_insert_limit) {
                         FishExpenses::query()->insert($rows);
                         $rows = [];
                     }
@@ -659,5 +664,66 @@ class DatabaseSeeder extends Seeder
         }
 
         FishExpenses::query()->insert($rows);
+    }
+
+    private function seedStorageExpense(): void
+    {
+        \Log::debug('Seeding Storage Expense');
+        $rows = [];
+        $storages = Storage::all();
+        foreach ($storages as $storage) {
+            foreach ($this->period as $date) {
+                foreach (Enums::$StorageExpenseType as $type) {
+                    if (fake()->boolean(30)) continue;
+
+                    $data = [
+                        'type' => $type,
+                        'date' => $date->toDateString(),
+                        'amount' => fake()->numberBetween(20, 250),
+                        'storage_id' => $storage->id,
+                        'farm_id' => $storage->farm_id,
+                    ];
+                    $rows[] = $data;
+
+                    if (count($rows) > $this->batch_insert_limit) {
+                        StorageExpenses::query()->insert($rows);
+                        $rows = [];
+                    }
+                }
+            }
+        }
+
+        StorageExpenses::query()->insert($rows);
+    }
+
+    private function seedOtherExpense(): void
+    {
+        \Log::debug('Seeding Other Expense');
+        $rows = [];
+        $farms = Farm::all();
+
+        $period = $this->start_date->monthsUntil($this->end_date);
+
+        foreach ($farms as $farm) {
+            foreach ($period as $month) {
+                foreach (array_keys(Enums::$MonthlyExpenseType) as $type) {
+//                    if (fake()->boolean(30)) continue;
+                    $data = [
+                        'type' => $type,
+                        'date' => $month->toDateString(),
+                        'amount' => Enums::$MonthlyExpenseType[$type],
+                        'farm_id' => $farm->id,
+                    ];
+                    $rows[] = $data;
+
+                    if (count($rows) > $this->batch_insert_limit) {
+                        OtherExpenses::query()->insert($rows);
+                        $rows = [];
+                    }
+                }
+            }
+        }
+
+        OtherExpenses::query()->insert($rows);
     }
 }

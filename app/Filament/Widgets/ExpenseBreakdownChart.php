@@ -3,6 +3,10 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Animal;
+use App\Models\AnimalExpense;
+use App\Models\Farm;
+use App\Models\FarmingExpenses;
+use App\Models\FishExpenses;
 use App\Models\PurchaseOrder;
 use App\Models\Salary;
 use Illuminate\Contracts\View\View;
@@ -34,11 +38,12 @@ class ExpenseBreakdownChart extends ApexChartWidget
         // Expenses
         // - Salary
         // - Purchase orders
-        // - Daily expenses (not implemented yet)
-            // - Animal expenses
+        // - Animal expenses
+        // - Fish expenses
+        // - Crop expenses
+        // - Not implemented yet:
             // - Storage expenses
-            // - Fish expenses
-            // - Crop expenses
+            // - Misc expenses
 
         $data = [
             [
@@ -50,7 +55,16 @@ class ExpenseBreakdownChart extends ApexChartWidget
                 'amount' => PurchaseOrder::sum('amount'),
             ],
             [
-
+                'expense' => 'Livestock',
+                'amount' => AnimalExpense::sum('amount')
+            ],
+            [
+                'expense' => 'Fish',
+                'amount' => FishExpenses::sum('amount')
+            ],
+            [
+                'expense' => 'Crop',
+                'amount' => FarmingExpenses::sum('amount')
             ],
         ];
 

@@ -18,8 +18,9 @@ class ListAnimalExpenses extends ListRecords
     protected function getHeaderWidgets(): array
     {
         return [
+            AnimalExpenseResource\Widgets\MontlyExpenseBarChart::class,
+            AnimalExpenseResource\Widgets\ExpenseType::class,
             AnimalExpenseResource\Widgets\DailyExpenseLineChart::class,
-            AnimalExpenseResource\Widgets\ExpenseType::class
         ];
     }
 

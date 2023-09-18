@@ -168,6 +168,19 @@ class Enums
         'Fuel',
     ];
 
+    public static array $StorageExpenseType = [
+        'Maintenance/Repair',
+        'Cleaning',
+    ];
+
+    public static array $MonthlyExpenseType = [
+        'Insurance' => 2000,
+        'Loan Installment' => 5000,
+        'Electricity Bill' => 6000,
+        'Water Bill' => 4000,
+        'Internet Bill' => 2000,
+    ];
+
     public static array $ItemType = [
         'Dairy',
         'Fishery',

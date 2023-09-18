@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('animal_expenses', function (Blueprint $table) {
             $table->id();
             $table->string('type');
+            $table->date('date');
             $table->integer('day');
             $table->integer('month');
             $table->integer('year');

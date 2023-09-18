@@ -15,7 +15,7 @@ export default {
             colors: {
                 danger: colors.rose,
                 primary: colors.blue,
-                secondary: colors.gray,
+                secondary: colors.slate,
                 success: colors.green,
                 warning: colors.yellow,
                 custom1: colors.amber,

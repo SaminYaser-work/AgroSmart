@@ -6,15 +6,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class FarmingExpenses extends Model
+class StorageExpenses extends Model
 {
     use HasFactory;
 
     protected $guarded = [];
 
-    public function field(): BelongsTo
+    public function storage(): BelongsTo
     {
-        return $this->belongsTo(Field::class);
+        return $this->belongsTo(Storage::class);
     }
 
     public function farm(): BelongsTo

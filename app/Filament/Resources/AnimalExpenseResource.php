@@ -40,13 +40,26 @@ class AnimalExpenseResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('type')
                     ->required(),
+                Forms\Components\DatePicker::make('date')
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, \Closure $set) {
+                        $date = Carbon::parse($state);
+                        $set('day', $date->copy()->format('d'));
+                        $set('month', $date->copy()->format('m'));
+                        $set('year', $date->copy()->format('Y'));
+                    })
+                    ->required(),
                 Forms\Components\TextInput::make('day')
+                    ->disabled()
                     ->required(),
                 Forms\Components\TextInput::make('month')
+                    ->disabled()
                     ->required(),
                 Forms\Components\TextInput::make('year')
+                    ->disabled()
                     ->required(),
                 Forms\Components\TextInput::make('amount')
+                    ->numeric()
                     ->required(),
             ]);
     }
@@ -55,14 +68,12 @@ class AnimalExpenseResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('date')
+                    ->date()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('animal.name'),
                 Tables\Columns\TextColumn::make('farm.name'),
                 Tables\Columns\BadgeColumn::make('type'),
-                Tables\Columns\TextColumn::make('date')
-                    ->getStateUsing(function (AnimalExpense $record) {
-                        return Carbon::parse($record->year . '-' . $record->month . '-' . $record->day)->format('d M, Y');
-                    })
-                    ->date(),
                 Tables\Columns\TextColumn::make('amount')
                     ->money('BDT', true)
                     ->sortable(),

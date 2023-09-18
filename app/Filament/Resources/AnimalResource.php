@@ -62,7 +62,7 @@ class AnimalResource extends Resource
                 Tables\Columns\TextColumn::make('gender')->getStateUsing(function (Animal $record) {
                     return ucfirst($record->gender);
                 }),
-                Tables\Columns\TextColumn::make('color'),
+                Tables\Columns\ColorColumn::make('color'),
             ])
             ->filters([
                 //

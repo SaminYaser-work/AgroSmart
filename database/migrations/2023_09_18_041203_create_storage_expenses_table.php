@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('farming_expenses', function (Blueprint $table) {
+        Schema::create('storage_expenses', function (Blueprint $table) {
             $table->id();
             $table->string('type');
             $table->date('date');
             $table->double('amount');
-            $table->foreignId('field_id')->references('id')->on('fields');
+            $table->foreignId('storage_id')->references('id')->on('storages');
             $table->foreignId('farm_id')->references('id')->on('farms');
             $table->timestamps();
         });
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('farming_expenses');
+        Schema::dropIfExists('storage_expenses');
     }
 };

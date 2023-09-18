@@ -30,14 +30,15 @@ class LatestPurchases extends BaseWidget
             Tables\Columns\TextColumn::make('farm.name'),
             Tables\Columns\IconColumn::make('status')
                 ->options([
+                    'heroicon-o-check-circle' => fn($state, $record): bool => LatestPurchases::isOrderDeliveredOnTime($record) || LatestPurchases::isOrderDeliveredLate($record),
                     'fas-triangle-exclamation' => fn($state, PurchaseOrder $record): bool => LatestPurchases::isOrderLate($record),
                     'heroicon-o-clock' => fn($state, PurchaseOrder $record): bool => LatestPurchases::isOrderPending($record),
-                    'heroicon-o-check-circle' => fn($state, $record): bool => LatestPurchases::isOrderDeliveredOnTime($record)
                 ])
                 ->colors([
                     'success' => fn($state, $record): bool => LatestPurchases::isOrderDeliveredOnTime($record),
                     'danger' => fn($state, PurchaseOrder $record): bool => LatestPurchases::isOrderLate($record),
-                    'warning' => fn($state, PurchaseOrder $record): bool => LatestPurchases::isOrderPending($record) || LatestPurchases::isOrderDeliveredLate($record),
+                    'secondary' => fn($state, PurchaseOrder $record): bool => LatestPurchases::isOrderPending($record),
+                    'warning' => fn($state, PurchaseOrder $record): bool => LatestPurchases::isOrderDeliveredLate($record),
                 ])
                 ->tooltip(function ($record) {
                     if (LatestPurchases::isOrderLate($record)) return 'Pending & Late';
@@ -49,10 +50,11 @@ class LatestPurchases extends BaseWidget
             Tables\Columns\TextColumn::make('order_date')
                 ->alignCenter()
                 ->date(),
-            Tables\Columns\TextColumn::make('expected_delivery_date')
-                ->alignCenter()
-                ->date(),
+//            Tables\Columns\TextColumn::make('expected_delivery_date')
+//                ->alignCenter()
+//                ->date(),
             Tables\Columns\TextColumn::make('actual_delivery_date')
+                ->label('Delivery Date')
                 ->color(fn(PurchaseOrder $record) => Carbon::parse($record->actual_delivery_date)->isAfter($record->expected_delivery_date) ? 'danger' : '')
                 ->placeholder('--')
                 ->alignCenter()
@@ -69,7 +71,7 @@ class LatestPurchases extends BaseWidget
     private static function isOrderLate(PurchaseOrder $record): bool
     {
         if ($record->actual_delivery_date === null) {
-            return Carbon::parse($record->expected_delivary_date)->isPast();
+            return Carbon::parse($record->expected_delivery_date)->isPast();
         }
         return false;
     }
@@ -77,20 +79,20 @@ class LatestPurchases extends BaseWidget
     private static function isOrderPending(PurchaseOrder $record): bool
     {
         if ($record->actual_delivery_date === null) {
-            return Carbon::parse($record->expected_delivary_date)->isFuture();
+            return Carbon::parse($record->expected_delivery_date)->isFuture();
         }
         return false;
     }
 
     private static function isOrderDeliveredOnTime(PurchaseOrder $record): bool
     {
-        return $record->actual_delivery_date !== null;
+        return $record->actual_delivery_date !== null && Carbon::parse($record->actual_delivery_date)->lessThanOrEqualTo(Carbon::parse($record->expected_delivery_date));
     }
 
     private static function isOrderDeliveredLate(PurchaseOrder $record): bool
     {
         if ($record->actual_delivery_date !== null) {
-            return Carbon::parse($record->actual_delivery_date)->lessThan(Carbon::parse($record->expected_delivary_date));
+            return Carbon::parse($record->actual_delivery_date)->greaterThan(Carbon::parse($record->expected_delivery_date));
         }
         return false;
     }

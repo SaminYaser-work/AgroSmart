@@ -10,15 +10,7 @@ class AnimalExpense extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'type',
-        'day',
-        'month',
-        'year',
-        'amount',
-        'animal_id',
-        'farm_id',
-    ];
+    protected $guarded = [];
 
     public function animal(): BelongsTo
     {

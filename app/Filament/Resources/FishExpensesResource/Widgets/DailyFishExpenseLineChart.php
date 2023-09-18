@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\AnimalExpenseResource\Widgets;
+namespace App\Filament\Resources\FishExpensesResource\Widgets;
 
-use App\Models\AnimalExpense;
+use App\Models\FarmingExpenses;
+use App\Models\FishExpenses;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class DailyExpenseLineChart extends ApexChartWidget
+class DailyFishExpenseLineChart extends ApexChartWidget
 {
     protected static ?string $pollingInterval = null;
 
@@ -28,7 +29,7 @@ class DailyExpenseLineChart extends ApexChartWidget
             return [];
         }
 
-        $data = AnimalExpense::query()
+        $data = FishExpenses::query()
             ->whereBetween('date', [Carbon::now()->subDays(30), Carbon::now()])
             ->orderBy('date', 'desc')
             ->limit(30)
@@ -43,7 +44,7 @@ class DailyExpenseLineChart extends ApexChartWidget
             ],
             'series' => [
                 [
-                    'name' => 'BasicLineChart',
+                    'name' => 'BDT',
                     'data' => array_column($data, 'amount')
                 ],
             ],

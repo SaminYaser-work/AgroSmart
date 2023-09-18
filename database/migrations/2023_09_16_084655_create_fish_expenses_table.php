@@ -14,9 +14,7 @@ return new class extends Migration
         Schema::create('fish_expenses', function (Blueprint $table) {
             $table->id();
             $table->string('type');
-            $table->integer('day');
-            $table->integer('month');
-            $table->integer('year');
+            $table->date('date');
             $table->double('amount');
             $table->foreignId('pond_id')->references('id')->on('ponds');
             $table->foreignId('farm_id')->references('id')->on('farms');
