@@ -16,9 +16,9 @@ return new class extends Migration
 
             $table->date('date');
             $table->float('total_revenue')->default(0);
-            $table->json('revenue_breakdown')->nullable();
+            $table->json('revenue_breakdown')->default([]);
             $table->float('total_expense')->default(0);
-            $table->json('expense_breakdown')->nullable();
+            $table->json('expense_breakdown')->default([]);
             $table->float('gross_profit')->default(0);
             $table->float('net_profit')->default(0);
             $table->float('total_assets')->default(0);

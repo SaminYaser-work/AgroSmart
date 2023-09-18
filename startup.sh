@@ -15,12 +15,15 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') File upload fix applied" >> /home/logs.txt
 cd /home/site/wwwroot || exit 1
 cp .env.azure .env
 php artisan optimize:clear
+cp laravel-queue.conf /etc/supervisor/conf.d/
 php artisan key:generate --force
 php artisan storage:link
 php artisan config:cache
 php artisan event:cache
 php artisan route:cache
 php artisan view:cache
+service supervisor restart
+service supervisor start
 echo "$(date '+%Y-%m-%d %H:%M:%S') Laravel deploy task completed" >> /home/logs.txt
 # Nginx config
 cp /home/site/wwwroot/nginx/default /etc/nginx/sites-enabled/ && service nginx restart

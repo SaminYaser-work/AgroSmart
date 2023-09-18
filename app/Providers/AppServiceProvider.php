@@ -42,7 +42,8 @@ class AppServiceProvider extends ServiceProvider
                 'Sales',
                 'Supply',
                 'HCM',
-                'Inventory'
+                'Inventory',
+                'Financial',
             ]);
         });
     }
