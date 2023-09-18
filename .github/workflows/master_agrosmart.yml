@@ -57,7 +57,7 @@ jobs:
         run: unzip release.zip
 
       - name: Install Supervisor
-        run: apt-get install supervisor -y && service supervisor start
+        run: sudo apt-get install supervisor -y && sudo service supervisor start
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
