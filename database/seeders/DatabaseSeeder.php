@@ -97,6 +97,7 @@ class DatabaseSeeder extends Seeder
         $this->seedFishExpense();
         $this->seedStorageExpense();
         $this->seedOtherExpense();
+        $this->seedJournal();
 
         \Log::debug('Seeding Done');
     }
@@ -653,8 +654,9 @@ class DatabaseSeeder extends Seeder
                         'pond_id' => $pond->id,
                         'farm_id' => $pond->farm_id,
                     ];
-                    $rows[] = $data;
 
+//                    FishExpenses::create($data);
+                    $rows[] = $data;
                     if (count($rows) > $this->batch_insert_limit) {
                         FishExpenses::query()->insert($rows);
                         $rows = [];
@@ -725,5 +727,87 @@ class DatabaseSeeder extends Seeder
         }
 
         OtherExpenses::query()->insert($rows);
+    }
+
+    private function seedJournal(): void
+    {
+        \Log::debug('Seeding Journal');
+        $rows = [];
+        $farms = Farm::all();
+        foreach ($farms as $farm) {
+            foreach ($this->period as $date) {
+                $d = $date->copy()->toDateString();
+
+                $total_revenue = SalesOrder::query()
+                    ->where('farm_id', '=', $farm->id)
+                    ->where('order_date', '=', $d)
+                    ->sum('amount');
+
+                $total_expense = $this->getTotalExpense($farm->id, $d);
+                $gross_profit = $total_revenue - $total_expense;
+                $net_profit = $gross_profit - $this->salaryController->getSalaryOfFarmInADay($farm->id, $d);
+                $account_payable = $this->getAccountPayable($farm->id);
+                $account_receivable = $this->getAccountReceivable($farm->id);
+
+                $data = [
+                    'date' => $date->toDateString(),
+                    'total_revenue' => $total_revenue,
+                    'total_expense' => $total_expense,
+                    'gross_profit' => $gross_profit,
+                    'net_profit' => $net_profit,
+                    'account_payable' => $account_payable,
+                    'account_receivable' => $account_receivable,
+                    'farm_id' => $farm->id,
+                ];
+                $rows[] = $data;
+
+                if (count($rows) > $this->batch_insert_limit) {
+                    \App\Models\Journal::query()->insert($rows);
+                    $rows = [];
+                }
+            }
+        }
+
+        \App\Models\Journal::query()->insert($rows);
+    }
+
+    private function getAccountReceivable(int $farm_id) {
+        return SalesOrder::query()
+            ->whereFarmId($farm_id)
+            ->whereNull('actual_delivery_date')
+            ->sum('amount');
+    }
+
+
+    private function getAccountPayable(int $farm_id) {
+        return $this->salaryController->getSalaryDueOfFarm($farm_id) +
+            PurchaseOrder::query()
+            ->whereFarmId($farm_id)
+            ->whereNull('actual_delivery_date')
+            ->sum('amount');
+    }
+
+    private function getTotalExpense(int $farm_id, string $date) {
+        return AnimalExpense::query()
+            ->whereFarmId($farm_id)
+            ->where('date', '=', $date)
+            ->sum('amount') +
+            FarmingExpenses::query()
+                ->whereFarmId($farm_id)
+                ->where('date', '=', $date)
+                ->sum('amount') +
+            FishExpenses::query()
+                ->whereFarmId($farm_id)
+                ->where('date', '=', $date)
+                ->sum('amount') +
+            StorageExpenses::query()
+                ->whereFarmId($farm_id)
+                ->where('date', '=', $date)
+                ->sum('amount') +
+            OtherExpenses::query()
+                ->whereFarmId($farm_id)
+                ->where('date', '=', $date)
+                ->sum('amount');
+
     }
 }

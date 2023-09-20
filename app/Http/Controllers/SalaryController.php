@@ -45,6 +45,22 @@ class SalaryController extends Controller
         return Salary::query()->where('paid', false)->sum('total');
     }
 
+    public function getSalaryDueOfFarm(int $farm_id)
+    {
+        return Salary::query()
+            ->whereFarmId($farm_id)
+            ->wherePaid(false)
+            ->sum('total');
+    }
+
+    public function getSalaryOfFarmInADay(int $farm_id, string $date)
+    {
+        return Salary::query()
+            ->whereFarmId($farm_id)
+            ->where('date','=', $date)
+            ->sum('total');
+    }
+
     public function getTotalSalaryPaid()
     {
         return Salary::query()->where('paid', true)->sum('total');

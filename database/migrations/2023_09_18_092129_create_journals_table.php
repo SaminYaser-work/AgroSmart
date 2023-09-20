@@ -16,9 +16,9 @@ return new class extends Migration
 
             $table->date('date');
             $table->float('total_revenue')->default(0);
-            $table->json('revenue_breakdown')->default([]);
+            $table->json('revenue_breakdown')->default(json_encode([]));
             $table->float('total_expense')->default(0);
-            $table->json('expense_breakdown')->default([]);
+            $table->json('expense_breakdown')->default(json_encode([]));
             $table->float('gross_profit')->default(0);
             $table->float('net_profit')->default(0);
             $table->float('total_assets')->default(0);
@@ -27,6 +27,10 @@ return new class extends Migration
             $table->float('account_payable')->default(0);
             $table->float('total_equity')->default(0);
 
+
+            $table->index('date');
+            $table->foreignId('farm_id');
+            $table->unique(['date', 'farm_id']);
             $table->timestamps();
         });
     }
